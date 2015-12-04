@@ -1,0 +1,345 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>HDFS RecoverLease RecoverBlock源码分析 | Blog of Tonywutao</title>
+  <meta name="author" content="Tonywutao">
+  
+  <meta name="description" content="Dev, Life, Talk">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="HDFS RecoverLease RecoverBlock源码分析"/>
+  <meta property="og:site_name" content="Blog of Tonywutao"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Blog of Tonywutao" type="application/atom+xml">
+  <link rel="stylesheet" href="/stylesheets/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/stylesheets/social_foundicons.css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script src="http://upcdn.b0.upaiyun.com/libs/jquery/jquery-1.8.3.min.js"></script>
+  
+</head>
+
+
+<body>
+        <script type="text/javascript">
+        /**
+         * 回到页面顶部
+         * @param acceleration 加速度
+         * @param time 时间间隔 (毫秒)
+         **/
+        function goTop(acceleration, time) {
+            acceleration = acceleration || 0.1;
+            time = time || 16;
+
+            var x1 = 0;
+            var y1 = 0;
+            var x2 = 0;
+            var y2 = 0;
+            var x3 = 0;
+            var y3 = 0;
+
+            if (document.documentElement) {
+                x1 = document.documentElement.scrollLeft || 0;
+                y1 = document.documentElement.scrollTop || 0;
+            }
+            if (document.body) {
+                x2 = document.body.scrollLeft || 0;
+                y2 = document.body.scrollTop || 0;
+            }
+            var x3 = window.scrollX || 0;
+            var y3 = window.scrollY || 0;
+
+            // 滚动条到页面顶部的水平距离
+            var x = Math.max(x1, Math.max(x2, x3));
+            // 滚动条到页面顶部的垂直距离
+            var y = Math.max(y1, Math.max(y2, y3));
+
+            // 滚动距离 = 目前距离 / 速度, 因为距离原来越小, 速度是大于 1 的数, 所以滚动距离会越来越小
+            var speed = 1 + acceleration;
+            window.scrollTo(Math.floor(x / speed), Math.floor(y / speed));
+
+            // 如果距离不为零, 继续调用迭代本函数
+            if(x > 0 || y > 0) {
+                var invokeFunction = "goTop(" + acceleration + ", " + time + ")";
+                window.setTimeout(invokeFunction, time);
+            }
+        }
+    </script>
+    <a href="#" onclick="goTop();return false;" class="backTop">▲</a>
+        <header>
+            <div class="wrapper">
+                <div class="center">
+                    <div class="searchBox"></div>
+                    <div class="headerMenu">
+                        <ul>
+                            
+                            <li><a href="/">Home</a></li>
+                            
+                            <li><a href="/archives">Archives</a></li>
+                            
+                        </ul>
+                    </div>
+                    <div class="socnets">
+                        
+                        
+                        <a href="/atom.xml" alt="rss"><i class="foundicon-rss"></i></a>
+                        
+                        <a href="mailto:tonywutao@gmail.com"><i class="foundicon-chat"></i></a>
+                        
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main">
+                        <div class="brand">
+                <div class="wide">
+                    <div class="center">
+                        <h1>
+                            <a href="/">Blog of Tonywutao</a>
+                        </h1>
+                        <p>
+                            
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="content"><div class="wide">
+    <div class="center">
+        <div class="head">
+            <div class="timeLine">
+                <time datetime="2012-03-22T00:00:00.000Z" class="date">
+                    <a href="/2012/03/21/hdfs-recover-source-code-analysis/">3月 21 2012</a>
+                </time>
+            </div>
+        </div>
+        
+  
+    <h2 class="title">HDFS RecoverLease RecoverBlock源码分析</h1>
+  
+
+        <div class="entry">
+        
+          <h4>起因</h4>
+<p>最近需要搞一下Lease，分析一下recoverLease的过程，顺带把recoverBlock的过程分析一下。</p>
+<h4>1. RecoverLease</h4>
+<p>recoverLease是恢复租约，我理解为释放文件之前的租约，close文件，报告namenode。</p>
+<p>recoverLease有两条路径去调用</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+</pre></td><td class="code"><pre>DistributedFileSystem<span class="variable">.create</span> 
+-&gt; DFSClient<span class="variable">.create</span> 
+-&gt; Namenode<span class="variable">.create</span> 
+-&gt; FSNamesystem<span class="variable">.startFile</span> 
+-&gt; FSNamesystem<span class="variable">.startFileInternal</span> 
+-&gt; recoverLeaseInternal(myFile, src, holder, clientMachine, <span class="literal">false</span>)
+</pre></td></tr></table></figure>
+
+<p>这条路径是在客户端文件create时调用的，此时它不需要close文件。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre>DistributedFileSystem<span class="variable">.recoverLease</span> 
+-&gt; DFSClient<span class="variable">.recoverLease</span> 
+-&gt; Namenode<span class="variable">.recoverLease</span>(src,clientname) 
+-&gt; FSNamesystem<span class="variable">.recoverLease</span>(src,holder,clientMachine) 
+-&gt; recoverLeaseInternal(inode, src, holder, clientMachine, <span class="literal">true</span>)
+</pre></td></tr></table></figure>
+
+<p>这条路径是在客户端显式调用一个path的recoverLease，此时它需要close文件。
+参看 <a href="https://issues.apache.org/jira/browse/HDFS-1554">HDFS-1554</a></p>
+<p>以上两个路径，最终会调用FSNamesystem.recoverLeaseInternal，下面我们着重看一下recoverLeaseInternal，它主要做以下事情：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+</pre></td><td class="code"><pre><span class="bullet">1. </span>获得pendingfile，获得当前holder的lease
+<span class="bullet">2. </span>如果lease不为空，且不是force，则AlreadyBeingCreatedException
+<span class="bullet">3. </span>获得当前client的lease，如果lease为空，则AlreadyBeingCreatedException
+<span class="bullet">4. </span>如果force则强制internalReleaseLeaseOne；否则，如果超过softlimit，也强制internalReleaseLease，但也抛出AlreadyBeingCreatedException。
+</pre></td></tr></table></figure>
+
+<p>它会通过调用internalReleaseLeaseOne实现对recoverBlock的执行。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+</pre></td><td class="code"><pre><span class="comment">recoverLeaseInternal</span> 
+<span class="literal">-</span>&gt; <span class="comment">internalReleaseLease</span> 
+<span class="literal">-</span>&gt; <span class="comment">internalReleaseLeaseOne
+</pre></td></tr></table></figure>
+
+<p>internalReleaseLeaseOne的过程：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="code"><pre><span class="number">1.</span>找这个file的最后一个block的targets
+
+<span class="number">2.</span> pendingFile<span class="variable">.assignPrimaryDatanode</span>()  
+   -&gt; DatanodeDescriptor<span class="variable">.addBlockToBeRecovered</span>() 
+   -&gt; recoverBlocks<span class="variable">.offer</span>()
+    recoverBlocks会在datanode向namenode发送心跳包时，将recoverBlock的命令以   NN_RECOVERY的holder身份返回给datanode，datanode执行命令。
+
+<span class="number">3.</span>reassignLease
+</pre></td></tr></table></figure>
+
+<h4>2. RecoverBlock过程</h4>
+<p>recoverBlock是在Datanode上执行的，有两条路径调用，一个由Namenode发起的，一个DFSClient发起的。</p>
+<h5>2.1. Namenode发起recoverBlock</h5>
+<ul>
+<li><p>Namenode上的过程：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre>  <span class="transposed_variable">Namenode.</span>sendHeartbeat(datanode调用，向namenode发送心跳包，namenode返回<span class="built_in">i</span>要执行的cmd 
+  -&gt; <span class="transposed_variable">FSNamesystem.</span>handleHeartbeat 
+  -&gt; <span class="transposed_variable">DatanodeDescritor.</span>getLeaseRecoveryCommand 
+  -&gt; <span class="transposed_variable">recoverBlocks.</span>poll()
+  按照上面recoverLease的分析，如果有recoverLease的请求，BlockQueue类型的recoverBlocks就有待处理的recoverBlock
+</pre></td></tr></table></figure>
+</li>
+<li><p>Datanode上的过程</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="code"><pre><span class="comment">Datanode</span>.<span class="comment">run</span> 
+<span class="literal">-</span>&gt; <span class="comment">offerService()(一直运行，和namenode交互)</span> 
+<span class="literal">-</span>&gt; <span class="comment">processCommand(cmds</span> <span class="title">[</span><span class="title">]</span><span class="comment">)</span> 
+<span class="literal">-</span>&gt; <span class="comment">processCommand(cmd)</span> 
+<span class="literal">-</span>&gt; <span class="comment">DNA_RECOVERBLOCK</span> 
+<span class="literal">-</span>&gt; <span class="comment">recoverBlocks(bcmd</span>.<span class="comment">getBlocks()</span>, <span class="comment">bcmd</span>.<span class="comment">getTargets())</span> 
+<span class="literal">-</span>&gt; <span class="comment">recoverBlock(blocks</span>[<span class="comment">i</span>]<span class="string">,</span> <span class="comment">false</span>, <span class="comment">targets</span>[<span class="comment">i</span>]<span class="string">,</span> <span class="comment">true)</span> 
+   <span class="title">[</span><span class="comment">closeFile</span> <span class="comment">=</span> <span class="comment">true</span>]
+</pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>即datanode上有个心跳线程，默认每个3秒钟，向namenode汇报心跳包，并获得要在datanode上执行的cmd。如果有namenode发来的recoverBlock请求，</p>
+<p>datanode上最终会调用recoverBlock方法，此时closeFile=true。它是recoverLease发起的，此时要关闭文件，并使得这个文件的block在datanode上的信息一致。</p>
+<h5>2.2. DFSClient发起的recoverBlock</h5>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+</pre></td><td class="code"><pre>DFSClient.processDatanodeError 
+-&gt; DataNode.recoverBlock(<span class="keyword">Block</span> <span class="keyword">block</span>, <span class="typename">boolean</span> keepLength, DatanodeInfo[] targets) 
+-&gt; DataNode.recoverBlock(<span class="keyword">Block</span> <span class="keyword">block</span>, <span class="typename">boolean</span> keepLength, DatanodeInfo[] targets, false) [closeFile = false]
+</pre></td></tr></table></figure>
+
+<p>DFSClient通过dataStreamer发送block的packet数据，如果这个过程出现异常，会由processDatanodeError进行recover处理，即获得pipeline中错误的datanode，在剩余的两个datanode选取一个datanode发起recoverBlock，从这个datanode开始重建pipeline。</p>
+<p>此时调用datanode的recoverBlock传递的closeFile=false，因为在DFSClient写入Block出现异常时，需要的是recover，不是关闭文件。</p>
+<ul>
+<li>关于recoverBlock<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+</pre></td><td class="code"><pre><span class="function"><span class="title">recoverBlock</span><span class="params">(<span class="variable">Block</span> block, boolean keep<span class="variable">Length</span>, <span class="variable">DatanodeInfo</span>[] targets, boolean close<span class="variable">File</span>)</span>
+
+1.检查<span class="title">ongoingRecovery</span>中是否有这个<span class="title">block</span>正在<span class="title">recover</span>，如果有，则抛出IOE<span class="title">xception</span>，B<span class="title">lock</span> <span class="title">is</span> <span class="title">already</span> <span class="title">being</span> <span class="title">recovered</span>, <span class="title">ignoring</span> <span class="title">this</span> <span class="title">request</span> <span class="title">to</span> <span class="title">recover</span> <span class="title">it</span>。如果没有，则<span class="title">add</span>进入<span class="title">ongoingRecovery</span>
+
+2.根据<span class="title">targets</span>建立<span class="title">syncList</span>，即明确向哪些节点<span class="title">sync</span>哪个<span class="title">block</span>
+
+---&gt;</span> sync<span class="variable">Block</span>
+<span class="number">1</span>.首先为这次sync<span class="variable">Block</span>从namenode处获得generation<span class="variable">Stamp</span>
+<span class="number">2</span>.以新的generation<span class="variable">Stamp</span>创建新的new<span class="variable">Block</span>
+<span class="number">3</span>.对sync<span class="variable">List</span>中的每个datanode，执行update<span class="variable">Block</span>操作，将旧的block更新为new<span class="variable">Block</span>
+<span class="number">4</span>.如果执行成功，向namenode报告commit<span class="variable">BlockSynchronization</span>，包含新的block和generation<span class="variable">Stamp</span>
+<span class="number">5</span>.返回located<span class="variable">Block</span>
+
+<span class="pp">---&gt; updateBlock
+1</span>.<span class="variable">FSDataset</span>.update<span class="variable">Block</span>
+<span class="number">2</span>.如果finalize为<span class="literal">true</span>，<span class="variable">FSDataset</span>.finalize<span class="variable">BlockIfNeeded</span>；通知namenode已经received block
+</pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h2>以上，记录以备忘。</h2>
+<p>END-------</p>
+<p>伍涛@成都 重整</p>
+<p>2013-07-28</p>
+
+        
+        
+        </div>
+    </div>
+</div>
+                
+                <div class="wide">
+                    <div class="center">
+                        <div id="disqus_thread">
+                            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                        </div>
+                    </div>
+                </div>
+                </div>
+        </div>
+
+  <footer>
+  
+  &copy; 2013 Tonywutao
+  
+</footer>
+  <script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blogoftonywutao';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

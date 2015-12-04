@@ -1,0 +1,252 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>HBase，HDFS，SocketTimeoutException | Blog of Tonywutao</title>
+  <meta name="author" content="Tonywutao">
+  
+  <meta name="description" content="Dev, Life, Talk">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="Blog of Tonywutao"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Blog of Tonywutao" type="application/atom+xml">
+  <link rel="stylesheet" href="/stylesheets/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/stylesheets/social_foundicons.css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script src="http://upcdn.b0.upaiyun.com/libs/jquery/jquery-1.8.3.min.js"></script>
+  
+</head>
+
+
+<body>
+        <script type="text/javascript">
+        /**
+         * 回到页面顶部
+         * @param acceleration 加速度
+         * @param time 时间间隔 (毫秒)
+         **/
+        function goTop(acceleration, time) {
+            acceleration = acceleration || 0.1;
+            time = time || 16;
+
+            var x1 = 0;
+            var y1 = 0;
+            var x2 = 0;
+            var y2 = 0;
+            var x3 = 0;
+            var y3 = 0;
+
+            if (document.documentElement) {
+                x1 = document.documentElement.scrollLeft || 0;
+                y1 = document.documentElement.scrollTop || 0;
+            }
+            if (document.body) {
+                x2 = document.body.scrollLeft || 0;
+                y2 = document.body.scrollTop || 0;
+            }
+            var x3 = window.scrollX || 0;
+            var y3 = window.scrollY || 0;
+
+            // 滚动条到页面顶部的水平距离
+            var x = Math.max(x1, Math.max(x2, x3));
+            // 滚动条到页面顶部的垂直距离
+            var y = Math.max(y1, Math.max(y2, y3));
+
+            // 滚动距离 = 目前距离 / 速度, 因为距离原来越小, 速度是大于 1 的数, 所以滚动距离会越来越小
+            var speed = 1 + acceleration;
+            window.scrollTo(Math.floor(x / speed), Math.floor(y / speed));
+
+            // 如果距离不为零, 继续调用迭代本函数
+            if(x > 0 || y > 0) {
+                var invokeFunction = "goTop(" + acceleration + ", " + time + ")";
+                window.setTimeout(invokeFunction, time);
+            }
+        }
+    </script>
+    <a href="#" onclick="goTop();return false;" class="backTop">▲</a>
+        <header>
+            <div class="wrapper">
+                <div class="center">
+                    <div class="searchBox"></div>
+                    <div class="headerMenu">
+                        <ul>
+                            
+                            <li><a href="/">Home</a></li>
+                            
+                            <li><a href="/archives">Archives</a></li>
+                            
+                        </ul>
+                    </div>
+                    <div class="socnets">
+                        
+                        
+                        <a href="/atom.xml" alt="rss"><i class="foundicon-rss"></i></a>
+                        
+                        <a href="mailto:tonywutao@gmail.com"><i class="foundicon-chat"></i></a>
+                        
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main">
+                        <div class="brand">
+                <div class="wide">
+                    <div class="center">
+                        <h1>
+                            <a href="/">Blog of Tonywutao</a>
+                        </h1>
+                        <p>
+                            
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="content">
+
+
+  
+    <div class="wide">
+    <div class="center">
+        <div class="head">
+            <div class="timeLine">
+                <time datetime="2012-03-09T00:00:00.000Z" class="date">
+                    <a href="/2012/03/08/sockettimeoutexception-when-hbase-heavily-writing/">3月 8 2012</a>
+                </time>
+            </div>
+        </div>
+        
+  
+    <h2 class="title"><a href="/2012/03/08/sockettimeoutexception-when-hbase-heavily-writing/">大并发写时，HBase的HDFS DFSClient端报SocketTimeoutException的问题分析和解决</a></h1>
+  
+
+        <div class="entry">
+        
+          <h2>问题现象</h2>
+<p>HBase大并发写，出现异常日志：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+</pre></td><td class="code"><pre><span class="number">2012</span>-<span class="number">03</span>-<span class="number">02</span> <span class="number">12</span>:<span class="number">11</span>:<span class="number">21</span>,<span class="number">983</span> WARN <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">hdfs.</span>DFSClient: DFSOutputStream ResponseProcessor exception  <span class="keyword">for</span> block <span class="transposed_variable">blk_1439491087566691588_6207java.</span><span class="transposed_variable">net.</span>SocketTimeoutException: <span class="number">69000</span> millis timeout <span class="keyword">while</span> waiting <span class="keyword">for</span> channel to be ready <span class="keyword">for</span> <span class="transposed_variable">read.</span> ch : <span class="transposed_variable">java.</span><span class="transposed_variable">nio.</span><span class="transposed_variable">channels.</span>SocketChannel<span class="matrix">[connected local=/dw1:<span class="number">54889</span> remote=/dw2:<span class="number">62010</span>]</span>
+        at <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">net.</span><span class="transposed_variable">SocketIOWithTimeout.</span>doIO(<span class="transposed_variable">SocketIOWithTimeout.</span>java:<span class="number">164</span>)
+        at <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">net.</span><span class="transposed_variable">SocketInputStream.</span>read(<span class="transposed_variable">SocketInputStream.</span>java:<span class="number">150</span>)
+        at <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">net.</span><span class="transposed_variable">SocketInputStream.</span>read(<span class="transposed_variable">SocketInputStream.</span>java:<span class="number">123</span>)
+        at <span class="transposed_variable">java.</span><span class="transposed_variable">io.</span><span class="transposed_variable">DataInputStream.</span>readFully(<span class="transposed_variable">DataInputStream.</span>java:<span class="number">178</span>)
+        at <span class="transposed_variable">java.</span><span class="transposed_variable">io.</span><span class="transposed_variable">DataInputStream.</span>readLong(<span class="transposed_variable">DataInputStream.</span>java:<span class="number">399</span>)
+        at <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">hdfs.</span><span class="transposed_variable">protocol.</span>DataTransferProtocol$<span class="transposed_variable">PipelineAck.</span>readFields(<span class="transposed_variable">DataTransferProtocol.</span>java:<span class="number">130</span>)
+        at <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">hdfs.</span>DFSClient$DFSOutputStream$<span class="transposed_variable">ResponseProcessor.</span>run(<span class="transposed_variable">DFSClient.</span>java:<span class="number">2459</span>)
+
+<span class="number">2012</span>-<span class="number">03</span>-<span class="number">02</span> <span class="number">12</span>:<span class="number">11</span>:<span class="number">21</span>,<span class="number">984</span> WARN <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">hdfs.</span>DFSClient: Error Recovery <span class="keyword">for</span> block blk_1439491087566691588_6207 bad datanode<span class="matrix">[<span class="number">0</span>]</span>dw2:<span class="number">62010</span>
+<span class="number">2012</span>-<span class="number">03</span>-<span class="number">02</span> <span class="number">12</span>:<span class="number">11</span>:<span class="number">21</span>,<span class="number">984</span> WARN <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">hdfs.</span>DFSClient: Error Recovery <span class="keyword">for</span> block blk_1439491087566691588_6207 in pipelinedw2:<span class="number">62010</span>,dw1:<span class="number">62010</span>,dw3:<span class="number">62010</span>: bad datanode dw2:<span class="number">62010</span>
+<span class="number">2012</span>-<span class="number">03</span>-<span class="number">02</span> <span class="number">12</span>:<span class="number">11</span>:<span class="number">22</span>,<span class="number">128</span> WARN <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">hbase.</span><span class="transposed_variable">regionserver.</span><span class="transposed_variable">wal.</span>HLog: HDFS pipeline error <span class="transposed_variable">detected.</span> Found <span class="number">2</span> replicas but expecting <span class="number">3</span> <span class="transposed_variable">replicas.</span>  Requesting close of <span class="transposed_variable">hlog.</span>
+</pre></td></tr></table></figure>
+
+<h2>代码分析</h2>
+<p>正常情况下DFSClient写block数据的过程是：</p>
+<h3>1. DFSClient端</h3>
+<ul>
+<li>DFSOutputStream负责数据的接收和写入，即通过DFSOutputSummer中的write方法（synchronized）获得数据，而sync（主要代码 synchronized(this)）通过FlushBuffer建立packet后，通过enqueuePacket向dataQueue中写入数据。</li>
+<li>DFSOutputStream中的DataStreamer（Daemon线程），负责向DataNode发送数据，每次发送前会检查dataQueue中是否有数据，没有就等待。</li>
+<li>DataStreamer建立pipeline传输数据时，对这个pipeline会起一个ResponseProcessor（Thread）去获得DataNode的反馈ack，并判断是否有错误、进行recoverBlock等</li>
+</ul>
+<h3>2. DataNode端</h3>
+<ul>
+<li>在每个packet传输过程中，根据建立数据传输的pipleLine，上游依次向下游发送数据，下游依次向上游发送ack。</li>
+<li>pipeline的最后一个节点（numTarget=0），PacketResponder 会一直运行lastDatanodeRun?方法，这个方法会在ack发送完毕(ackQueue.size()=0)后约1/2个dfs.socket.timeout?时刻发送心跳包，沿着pipeline发送给client。</li>
+</ul>
+<h3>3. HBase端</h3>
+<ul>
+<li>HBase端通过hlog中的writer向hdfs写数据，每次有数据写入，都会sync。同时，HLog中有个logSyncer，默认配置是每秒钟调用一次sync，不管有没有数据写入。</li>
+</ul>
+<h2>问题分析</h2>
+<p>这个问题首先是由于超时引起的，我们先分析一下超时前后DFSClient和DataNode上发生了什么。</p>
+<h3>1. 问题重现</h3>
+<ul>
+<li>客户端ResponseProcessor报69秒socket超时，出错点在PipelineAck.readFields()。出错后直接catch，标记hasError=true，closed=true。这个线程不会停止。</li>
+<li>DataStreamer在轮询中调用processDatanodeError对hasError=true进行处理。此时errorIndex=0（默认值），首先会抛出Recovery for Block的异常. 然后关闭blockstream，重新基于两个节点的pipeline进行recoverBlock。</li>
+<li>在DataNode上，processDatanodeError()关闭blockstream。这将导致pipeline中的packetResponder被interrupted和terminated。</li>
+<li>在DataNode上，processDatanodeError()关闭blockstream，导致BlockReceiver的readNextPacket()中的readToBuf读取不到数据，throw EOFException的异常。这个异常一直向上抛，直到DataXceiver的run中，它将导致DataXceiver中止运行，提示DataNode.dnRegistration Error。</li>
+<li>recoverBlock会正常进行，并先在两个节点上完成（第二个和第三个）。随后Namenode会发现replicas数量不足，向DataNode发起transfer block的命令，这是一个异步的过程。但是在hlog检查时，transfer很有可能未完成，这时会报 pipeline error detected. Found 2 replicas but expecting 3 replicas。并关闭hlog。</li>
+</ul>
+<p>以上就是根据日志可以看到的错误过程。</p>
+<h3>2. 问题分析</h3>
+<ul>
+<li>为什么会超时，为什么心跳包没有发？
+根据以上的分析，ResponseProcessor socket 69秒超时是导致后续一系列异常和hlog关闭的原因。那么为何会发生socket超时？ResponseProcessor应该会在dfs.socket.timeout的1/2时间内收到HeartBeat包。
+经过打印日志，我们发现，DataNode上配置的dfs.socket.timeout为180秒，而HBase调用DFSClient时采用默认配置，即60秒。因此，DFSClient认为超时时间为3×nodes.length+60=69秒，而DataNode端发送心跳包的timeout=1/2×180=90秒！因此，如果在没有数据写入的情况下，DataNode将在90秒后发送心跳包，此时DFSClient已经socketTimeout了，并导致后续的一系列现象。</li>
+<li>为什么会在69秒内没有新的packet发送过去呢？
+我们先分析一下DFSOutputStream写数据和sync的同步关系。DFSOutputStream继承自FSOutputSummer，DFSOutputStream接收数据是通过FSOutputSummer的write方法，这个方法是synchronized。而sync方法的flushBuffer()和enqueuePacket()，也在synchronized(this)代码块中。也就是说，对一个DFSOutputStream线程，如果sync和write同时调用，将发生同步等待。在hbase的场景下，sync发生的频率非常高，sync抢到锁的可能性很大。这样，就很有可能在不断的sync，不断的flushBuffer，但是却没能通过write写入数据（被blocked了）。这就是导致超时时间内一直没有packet发送的原因。</li>
+</ul>
+<p>综上，HBase业务调用的特点和DFSOutputStream的synchronized代码块，很有可能69秒中没有packet写入。但这个时候，不应该socket超时，socket超时是这个问题的根本原因，而socket超时的原因是配置不一致。</p>
+<h3>3. 问题解决</h3>
+<p>在hdfs端和hbase端，配置同样的dfs.socket.timeout值。在云梯环境下配置的是180000（180秒）。</p>
+<p>------END-------</p>
+<p>伍涛@成都</p>
+<p>2013-07-27</p>
+
+        
+        
+          
+        
+        </div>
+    </div>
+</div>
+                
+  
+
+                  
+</div>
+        </div>
+
+  <footer>
+  
+  &copy; 2013 Tonywutao
+  
+</footer>
+  <script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blogoftonywutao';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

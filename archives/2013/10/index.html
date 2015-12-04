@@ -1,0 +1,202 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>归档：2013/10 | Blog of Tonywutao</title>
+  <meta name="author" content="Tonywutao">
+  
+  <meta name="description" content="Dev, Life, Talk">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="Blog of Tonywutao"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Blog of Tonywutao" type="application/atom+xml">
+  <link rel="stylesheet" href="/stylesheets/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/stylesheets/social_foundicons.css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script src="http://upcdn.b0.upaiyun.com/libs/jquery/jquery-1.8.3.min.js"></script>
+  
+</head>
+
+
+<body>
+        <script type="text/javascript">
+        /**
+         * 回到页面顶部
+         * @param acceleration 加速度
+         * @param time 时间间隔 (毫秒)
+         **/
+        function goTop(acceleration, time) {
+            acceleration = acceleration || 0.1;
+            time = time || 16;
+
+            var x1 = 0;
+            var y1 = 0;
+            var x2 = 0;
+            var y2 = 0;
+            var x3 = 0;
+            var y3 = 0;
+
+            if (document.documentElement) {
+                x1 = document.documentElement.scrollLeft || 0;
+                y1 = document.documentElement.scrollTop || 0;
+            }
+            if (document.body) {
+                x2 = document.body.scrollLeft || 0;
+                y2 = document.body.scrollTop || 0;
+            }
+            var x3 = window.scrollX || 0;
+            var y3 = window.scrollY || 0;
+
+            // 滚动条到页面顶部的水平距离
+            var x = Math.max(x1, Math.max(x2, x3));
+            // 滚动条到页面顶部的垂直距离
+            var y = Math.max(y1, Math.max(y2, y3));
+
+            // 滚动距离 = 目前距离 / 速度, 因为距离原来越小, 速度是大于 1 的数, 所以滚动距离会越来越小
+            var speed = 1 + acceleration;
+            window.scrollTo(Math.floor(x / speed), Math.floor(y / speed));
+
+            // 如果距离不为零, 继续调用迭代本函数
+            if(x > 0 || y > 0) {
+                var invokeFunction = "goTop(" + acceleration + ", " + time + ")";
+                window.setTimeout(invokeFunction, time);
+            }
+        }
+    </script>
+    <a href="#" onclick="goTop();return false;" class="backTop">▲</a>
+        <header>
+            <div class="wrapper">
+                <div class="center">
+                    <div class="searchBox"></div>
+                    <div class="headerMenu">
+                        <ul>
+                            
+                            <li><a href="/">Home</a></li>
+                            
+                            <li><a href="/archives">Archives</a></li>
+                            
+                        </ul>
+                    </div>
+                    <div class="socnets">
+                        
+                        
+                        <a href="/atom.xml" alt="rss"><i class="foundicon-rss"></i></a>
+                        
+                        <a href="mailto:tonywutao@gmail.com"><i class="foundicon-chat"></i></a>
+                        
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main">
+                        <div class="brand">
+                <div class="wide">
+                    <div class="center">
+                        <h1>
+                            <a href="/">Blog of Tonywutao</a>
+                        </h1>
+                        <p>
+                            
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="content">
+
+
+  
+    <div class="wide">
+    <div class="center">
+        <div class="head">
+            <div class="timeLine">
+                <time datetime="2013-10-18T00:00:00.000Z" class="date">
+                    <a href="/2013/10/17/cassandra-sstable-loader/">10月 17 2013</a>
+                </time>
+            </div>
+        </div>
+        
+  
+    <h2 class="title"><a href="/2013/10/17/cassandra-sstable-loader/">Cassandra使用SSTableLoader导入数据</a></h1>
+  
+
+        <div class="entry">
+        
+          <h2>Cassandra使用SSTableLoader导入数据</h2>
+<p>Step 1： 从远程Cassandra集群拷贝sstable数据，只需Data / Index数据即可</p>
+<p>Step 2： 在本地集群创建对应的Keyspace和Column Family</p>
+<p>Step 3： 运行SSTableLoader</p>
+<pre><code><figure class="highlight"><pre>* $ sstableloader --debug -d localhost Keyspace1/ColumnFamily1
+* 最好在非Cassandra node的server上运行sstableloader. 根据[Cassandra Bulkloader]的官方文档，在一个Cassandra节点运行sstableloader，会无法使用其network interface，也可能会因为这个节点的网络流量较大降低效率。
+* SSTable的文件路径，需安装 <span class="tag">&lt;<span class="title">Keyspace</span>&gt;</span> / <span class="tag">&lt;<span class="title">CF</span>&gt;</span> 这样的路径存放， 并输入给sstableloader
+* --debug 参数， 可以在控制台打出debug信息
+* SSTable下有子目录如snapshot，会导致sstableloader异常
+</pre></figure></code></pre>
+<h3>运行成功示例</h3>
+<pre><code><figure class="highlight"><pre>......
+progress: [/<span class="number">10.16</span><span class="number">.83</span><span class="number">.86</span> <span class="number">3</span>/<span class="number">3</span> (<span class="number">100</span>)] [/<span class="number">10.16</span><span class="number">.83</span><span class="number">.87</span> <span class="number">3</span>/<span class="number">3</span> (<span class="number">100</span>)] [/<span class="number">10.16</span><span class="number">.83</span><span class="number">.84</span> <span class="number">3</span>/<span class="number">3</span> (<span class="number">100</span>)] 
+[total: <span class="number">100</span> - 0MB/s (avg: 6MB/s)]
+Waiting <span class="keyword">for</span> targets to rebuild indexes <span class="keyword">...</span>
+</pre></figure></code></pre>
+<h2>很好用，速度也很快。</h2>
+<p>END-------</p>
+<p>伍涛@成都 </p>
+<p>2013-10-18</p>
+
+        
+        
+          
+        
+        </div>
+    </div>
+</div>
+                
+  
+
+                  
+</div>
+        </div>
+
+  <footer>
+  
+  &copy; 2013 Tonywutao
+  
+</footer>
+  <script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blogoftonywutao';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

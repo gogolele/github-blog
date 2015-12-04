@@ -1,0 +1,362 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>使用Hexo搭建基于Github的静态博客 | Blog of Tonywutao</title>
+  <meta name="author" content="Tonywutao">
+  
+  <meta name="description" content="Dev, Life, Talk">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="使用Hexo搭建基于Github的静态博客"/>
+  <meta property="og:site_name" content="Blog of Tonywutao"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Blog of Tonywutao" type="application/atom+xml">
+  <link rel="stylesheet" href="/stylesheets/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/stylesheets/social_foundicons.css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script src="http://upcdn.b0.upaiyun.com/libs/jquery/jquery-1.8.3.min.js"></script>
+  
+</head>
+
+
+<body>
+        <script type="text/javascript">
+        /**
+         * 回到页面顶部
+         * @param acceleration 加速度
+         * @param time 时间间隔 (毫秒)
+         **/
+        function goTop(acceleration, time) {
+            acceleration = acceleration || 0.1;
+            time = time || 16;
+
+            var x1 = 0;
+            var y1 = 0;
+            var x2 = 0;
+            var y2 = 0;
+            var x3 = 0;
+            var y3 = 0;
+
+            if (document.documentElement) {
+                x1 = document.documentElement.scrollLeft || 0;
+                y1 = document.documentElement.scrollTop || 0;
+            }
+            if (document.body) {
+                x2 = document.body.scrollLeft || 0;
+                y2 = document.body.scrollTop || 0;
+            }
+            var x3 = window.scrollX || 0;
+            var y3 = window.scrollY || 0;
+
+            // 滚动条到页面顶部的水平距离
+            var x = Math.max(x1, Math.max(x2, x3));
+            // 滚动条到页面顶部的垂直距离
+            var y = Math.max(y1, Math.max(y2, y3));
+
+            // 滚动距离 = 目前距离 / 速度, 因为距离原来越小, 速度是大于 1 的数, 所以滚动距离会越来越小
+            var speed = 1 + acceleration;
+            window.scrollTo(Math.floor(x / speed), Math.floor(y / speed));
+
+            // 如果距离不为零, 继续调用迭代本函数
+            if(x > 0 || y > 0) {
+                var invokeFunction = "goTop(" + acceleration + ", " + time + ")";
+                window.setTimeout(invokeFunction, time);
+            }
+        }
+    </script>
+    <a href="#" onclick="goTop();return false;" class="backTop">▲</a>
+        <header>
+            <div class="wrapper">
+                <div class="center">
+                    <div class="searchBox"></div>
+                    <div class="headerMenu">
+                        <ul>
+                            
+                            <li><a href="/">Home</a></li>
+                            
+                            <li><a href="/archives">Archives</a></li>
+                            
+                        </ul>
+                    </div>
+                    <div class="socnets">
+                        
+                        
+                        <a href="/atom.xml" alt="rss"><i class="foundicon-rss"></i></a>
+                        
+                        <a href="mailto:tonywutao@gmail.com"><i class="foundicon-chat"></i></a>
+                        
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main">
+                        <div class="brand">
+                <div class="wide">
+                    <div class="center">
+                        <h1>
+                            <a href="/">Blog of Tonywutao</a>
+                        </h1>
+                        <p>
+                            
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="content"><div class="wide">
+    <div class="center">
+        <div class="head">
+            <div class="timeLine">
+                <time datetime="2013-07-27T00:00:00.000Z" class="date">
+                    <a href="/2013/07/26/use-hexo-to-build-blog-on-github/">7月 26 2013</a>
+                </time>
+            </div>
+        </div>
+        
+  
+    <h2 class="title">使用Hexo搭建基于Github的静态博客</h1>
+  
+
+        <div class="entry">
+        
+          <h2>1. 缘起</h2>
+<p>最近试图在Github上搭建博客,目的其实是为了有个地方可以写团队的DevBlog,我想说我做了了若干尝试,但是不太会搞.汗^-^.</p>
+<p>Octopress挺酷的,但是真的不是很方便,不知道大家是否同意.我看鬼厉的博客<a href="www.luoli523.com" title="鬼厉的博客">luoli523</a>就是基于Octopress和Github的,看起来真不错,鬼哥是有Taste的人.</p>
+<p><a href="http://beiyuu.com" title="BeiYuu">BeiYuu</a>的博客基于Jekyll,我觉得也挺好看了.fork下来改了几下,觉得还是麻烦.</p>
+<p>后来看到了<a href="https://github.com/tommy351/hexo">hexo</a>,尝试着用了一下,咦,还不错哦,清爽,轻快,我喜欢. 主要参考的是官方的指南,写得很清晰.这个文章<a href="http://howiefh.github.io/2013/04/26/use-hexo/">use-hexo</a>也给了我帮助,致谢.</p>
+<h2>2. 动手</h2>
+<h3>2.1 我的环境</h3>
+<p>CentOS release 6.3 (Final)</p>
+<p>2.6.32-279.el6.x86_64</p>
+<h3>2.2 本地安装</h3>
+<h4>安装git</h4>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="title">yum</span> install git
+</pre></td></tr></table></figure>
+
+
+<p>git的ssh-key，我就不说了吧，把key拷贝进入github的个人设置中......</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre><span class="title">ssh</span>-keygen -t rsa
+<span class="title">cat</span> ~/.ssh/id_rsa.pub
+</pre></td></tr></table></figure>
+
+<h4>安装nodejs</h4>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre>wget http://nodejs<span class="preprocessor">.org</span>/dist/v0<span class="number">.11</span><span class="number">.0</span>/node-v0<span class="number">.11</span><span class="number">.0</span>-linux-x64<span class="preprocessor">.tar</span><span class="preprocessor">.gz</span>
+tar zxvf node-v0<span class="number">.11</span><span class="number">.0</span>-linux-x64<span class="preprocessor">.tar</span><span class="preprocessor">.gz</span>
+</pre></td></tr></table></figure>
+
+<p>为node.js修改环境变量</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="code"><pre><span class="title">vim</span> ~/.bashrc
+
+<span class="type">NODEJS_HOME</span>=/home/bigdata/node-v0<span class="number">.11</span><span class="number">.0</span>-linux-x64
+<span class="type">PATH</span>=$<span class="type">NODEJS_HOME</span>/bin:$<span class="type">PATH</span>
+<span class="title">export</span> <span class="type">NODEJS_HOME</span>
+<span class="title">export</span> <span class="type">PATH</span>
+
+<span class="title">source</span> ~/.bashrc
+</pre></td></tr></table></figure>
+
+<p>检查node.js是否安装成功</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre><span class="title">node</span> <span class="comment">--version</span>
+<span class="title">v0</span><span class="number">.11</span><span class="number">.0</span>
+</pre></td></tr></table></figure>
+
+<h4>安装npm</h4>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre>curl -s https://npmjs<span class="preprocessor">.org</span>/install<span class="preprocessor">.sh</span> &gt; npm-install-$$<span class="preprocessor">.sh</span>
+sh npm-install-*<span class="preprocessor">.sh</span>
+</pre></td></tr></table></figure>
+
+<h4>安装hexo</h4>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+</pre></td><td class="code"><pre>npm install hexo -g
+hexo init tonywutao<span class="variable">.github</span><span class="variable">.io</span>   
+cd tonywutao<span class="variable">.github</span><span class="variable">.io</span>
+</pre></td></tr></table></figure>
+
+<p>配置修改
+Site部分的自定义配置</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+</pre></td><td class="code"><pre><span class="label">title:</span> Blog of Tonywutao
+<span class="label">subtitle:</span>
+<span class="label">description:</span> Dev, Life, Talk
+<span class="label">author:</span> Tonywutao
+<span class="label">email:</span> tonywutao@gmail<span class="preprocessor">.com</span>
+<span class="label">language:</span> <span class="built_in">zh</span>-CN
+
+<span class="preprocessor"># URL</span>
+<span class="preprocessor">## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'</span>
+<span class="label">url:</span> http://tonywutao<span class="preprocessor">.github</span><span class="preprocessor">.io</span>
+<span class="label">root:</span> /
+<span class="label">permalink:</span> :year/:month/:day/:title/
+<span class="label">tag_dir:</span> tags
+<span class="label">archive_dir:</span> archives
+<span class="label">category_dir:</span> categories
+<span class="label">code_dir:</span> downloads/code
+</pre></td></tr></table></figure>
+
+<p>Git Deploy的配置</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+</pre></td><td class="code"><pre><span class="preprocessor"># Deployment</span>
+<span class="preprocessor">## Docs: http://zespia.tw/hexo/docs/deploy.html</span>
+<span class="label">deploy:</span>
+    type: github
+    repository: git@github<span class="preprocessor">.com</span>:tonywutao/tonywutao<span class="preprocessor">.github</span><span class="preprocessor">.io</span><span class="preprocessor">.git</span>
+    branch: master
+</pre></td></tr></table></figure>
+
+<p>Disqus的配置，disqus当然需要你先去disqus上注册，并为自己的博客地址生成key</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre><span class="preprocessor"># Disqus</span>
+disqus_shortname: blogoftonywutao
+</pre></td></tr></table></figure>
+
+<p>Theme的修改
+我比较喜欢memoir这个主题，将这个主题git clone到theme目录下，并命名为memoir即可</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre>git clone <span class="tag">&lt;<span class="title">repository</span>&gt;</span> themes/<span class="tag">&lt;<span class="title">theme-name</span>&gt;</span>
+</pre></td></tr></table></figure>
+
+<p>theme的地址为</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="label">https:</span>//github<span class="preprocessor">.com</span>/tommy351/hexo/wiki/Themes/
+</pre></td></tr></table></figure>
+
+<p>我执行的操作是</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="title">git</span> clone git<span class="variable">@github</span>.com:yhben/hexo-theme-memoir.git theme/memoir
+</pre></td></tr></table></figure>
+
+<p>至此，其实就装好了，后面就是写博客的事情了。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+</pre></td><td class="code"><pre>hexo <span class="keyword">new</span> <span class="string">"new post"</span>     <span class="preprocessor">#新写一个md的日志</span>
+hexo generate           <span class="preprocessor">#生成静态文件</span>
+hexo <span class="keyword">server</span>             <span class="preprocessor">#启动本地服务，可以查看本地博客是否正常</span>
+</pre></td></tr></table></figure>
+
+<p>部署到github</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="title">hexo</span> deploy
+</pre></td></tr></table></figure>
+
+<p>或者 </p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="comment">hexo</span> <span class="comment">deploy</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">generate
+</pre></td></tr></table></figure>
+
+<p>要删除部署的文件</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="comment">rm</span> <span class="literal">-</span><span class="comment">rf</span> <span class="string">.</span><span class="comment">deploy
+</pre></td></tr></table></figure>
+
+<p>这样就差不多搞定了。</p>
+<h3>2.3 建立github pages</h3>
+<p>回过头来再说一下github pages的构建，只需在github登录后，新建一个tonywutao.github.io的project。然后在setting中publish pages。大约等10多分钟，就可以通过 tonywutao.github.io看到网站了。在hexo中，配置的远程git仓库，应指向这个github上的仓库。</p>
+<h3>2.4 写MardDown的工具</h3>
+<p>我的OS是windows，我是通过在线工具写的，我也尝试过sublime这样的工具，我认为最重要的是实时预览功能，不然太折腾了。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="label">http:</span>//benweet<span class="preprocessor">.github</span><span class="preprocessor">.io</span>/stackedit/
+</pre></td></tr></table></figure>
+
+<p>------END-------</p>
+<p>伍涛@成都</p>
+<p>2013-07-27</p>
+
+        
+        
+        </div>
+    </div>
+</div>
+                
+                <div class="wide">
+                    <div class="center">
+                        <div id="disqus_thread">
+                            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                        </div>
+                    </div>
+                </div>
+                </div>
+        </div>
+
+  <footer>
+  
+  &copy; 2013 Tonywutao
+  
+</footer>
+  <script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blogoftonywutao';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

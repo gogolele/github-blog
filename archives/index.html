@@ -1,0 +1,1159 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>归档 | Blog of Tonywutao</title>
+  <meta name="author" content="Tonywutao">
+  
+  <meta name="description" content="Dev, Life, Talk">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="Blog of Tonywutao"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Blog of Tonywutao" type="application/atom+xml">
+  <link rel="stylesheet" href="/stylesheets/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/stylesheets/social_foundicons.css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script src="http://upcdn.b0.upaiyun.com/libs/jquery/jquery-1.8.3.min.js"></script>
+  
+</head>
+
+
+<body>
+        <script type="text/javascript">
+        /**
+         * 回到页面顶部
+         * @param acceleration 加速度
+         * @param time 时间间隔 (毫秒)
+         **/
+        function goTop(acceleration, time) {
+            acceleration = acceleration || 0.1;
+            time = time || 16;
+
+            var x1 = 0;
+            var y1 = 0;
+            var x2 = 0;
+            var y2 = 0;
+            var x3 = 0;
+            var y3 = 0;
+
+            if (document.documentElement) {
+                x1 = document.documentElement.scrollLeft || 0;
+                y1 = document.documentElement.scrollTop || 0;
+            }
+            if (document.body) {
+                x2 = document.body.scrollLeft || 0;
+                y2 = document.body.scrollTop || 0;
+            }
+            var x3 = window.scrollX || 0;
+            var y3 = window.scrollY || 0;
+
+            // 滚动条到页面顶部的水平距离
+            var x = Math.max(x1, Math.max(x2, x3));
+            // 滚动条到页面顶部的垂直距离
+            var y = Math.max(y1, Math.max(y2, y3));
+
+            // 滚动距离 = 目前距离 / 速度, 因为距离原来越小, 速度是大于 1 的数, 所以滚动距离会越来越小
+            var speed = 1 + acceleration;
+            window.scrollTo(Math.floor(x / speed), Math.floor(y / speed));
+
+            // 如果距离不为零, 继续调用迭代本函数
+            if(x > 0 || y > 0) {
+                var invokeFunction = "goTop(" + acceleration + ", " + time + ")";
+                window.setTimeout(invokeFunction, time);
+            }
+        }
+    </script>
+    <a href="#" onclick="goTop();return false;" class="backTop">▲</a>
+        <header>
+            <div class="wrapper">
+                <div class="center">
+                    <div class="searchBox"></div>
+                    <div class="headerMenu">
+                        <ul>
+                            
+                            <li><a href="/">Home</a></li>
+                            
+                            <li><a href="/archives">Archives</a></li>
+                            
+                        </ul>
+                    </div>
+                    <div class="socnets">
+                        
+                        
+                        <a href="/atom.xml" alt="rss"><i class="foundicon-rss"></i></a>
+                        
+                        <a href="mailto:tonywutao@gmail.com"><i class="foundicon-chat"></i></a>
+                        
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main">
+                        <div class="brand">
+                <div class="wide">
+                    <div class="center">
+                        <h1>
+                            <a href="/">Blog of Tonywutao</a>
+                        </h1>
+                        <p>
+                            
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="content">
+
+
+  
+    <div class="wide">
+    <div class="center">
+        <div class="head">
+            <div class="timeLine">
+                <time datetime="2013-10-18T00:00:00.000Z" class="date">
+                    <a href="/2013/10/17/cassandra-sstable-loader/">10月 17 2013</a>
+                </time>
+            </div>
+        </div>
+        
+  
+    <h2 class="title"><a href="/2013/10/17/cassandra-sstable-loader/">Cassandra使用SSTableLoader导入数据</a></h1>
+  
+
+        <div class="entry">
+        
+          <h2>Cassandra使用SSTableLoader导入数据</h2>
+<p>Step 1： 从远程Cassandra集群拷贝sstable数据，只需Data / Index数据即可</p>
+<p>Step 2： 在本地集群创建对应的Keyspace和Column Family</p>
+<p>Step 3： 运行SSTableLoader</p>
+<pre><code><figure class="highlight"><pre>* $ sstableloader --debug -d localhost Keyspace1/ColumnFamily1
+* 最好在非Cassandra node的server上运行sstableloader. 根据[Cassandra Bulkloader]的官方文档，在一个Cassandra节点运行sstableloader，会无法使用其network interface，也可能会因为这个节点的网络流量较大降低效率。
+* SSTable的文件路径，需安装 <span class="tag">&lt;<span class="title">Keyspace</span>&gt;</span> / <span class="tag">&lt;<span class="title">CF</span>&gt;</span> 这样的路径存放， 并输入给sstableloader
+* --debug 参数， 可以在控制台打出debug信息
+* SSTable下有子目录如snapshot，会导致sstableloader异常
+</pre></figure></code></pre>
+<h3>运行成功示例</h3>
+<pre><code><figure class="highlight"><pre>......
+progress: [/<span class="number">10.16</span><span class="number">.83</span><span class="number">.86</span> <span class="number">3</span>/<span class="number">3</span> (<span class="number">100</span>)] [/<span class="number">10.16</span><span class="number">.83</span><span class="number">.87</span> <span class="number">3</span>/<span class="number">3</span> (<span class="number">100</span>)] [/<span class="number">10.16</span><span class="number">.83</span><span class="number">.84</span> <span class="number">3</span>/<span class="number">3</span> (<span class="number">100</span>)] 
+[total: <span class="number">100</span> - 0MB/s (avg: 6MB/s)]
+Waiting <span class="keyword">for</span> targets to rebuild indexes <span class="keyword">...</span>
+</pre></figure></code></pre>
+<h2>很好用，速度也很快。</h2>
+<p>END-------</p>
+<p>伍涛@成都 </p>
+<p>2013-10-18</p>
+
+        
+        
+          
+        
+        </div>
+    </div>
+</div>
+                
+  
+    <div class="wide">
+    <div class="center">
+        <div class="head">
+            <div class="timeLine">
+                <time datetime="2013-07-27T00:00:00.000Z" class="date">
+                    <a href="/2013/07/26/use-hexo-to-build-blog-on-github/">7月 26 2013</a>
+                </time>
+            </div>
+        </div>
+        
+  
+    <h2 class="title"><a href="/2013/07/26/use-hexo-to-build-blog-on-github/">使用Hexo搭建基于Github的静态博客</a></h1>
+  
+
+        <div class="entry">
+        
+          <h2>1. 缘起</h2>
+<p>最近试图在Github上搭建博客,目的其实是为了有个地方可以写团队的DevBlog,我想说我做了了若干尝试,但是不太会搞.汗^-^.</p>
+<p>Octopress挺酷的,但是真的不是很方便,不知道大家是否同意.我看鬼厉的博客<a href="www.luoli523.com" title="鬼厉的博客">luoli523</a>就是基于Octopress和Github的,看起来真不错,鬼哥是有Taste的人.</p>
+<p><a href="http://beiyuu.com" title="BeiYuu">BeiYuu</a>的博客基于Jekyll,我觉得也挺好看了.fork下来改了几下,觉得还是麻烦.</p>
+<p>后来看到了<a href="https://github.com/tommy351/hexo">hexo</a>,尝试着用了一下,咦,还不错哦,清爽,轻快,我喜欢. 主要参考的是官方的指南,写得很清晰.这个文章<a href="http://howiefh.github.io/2013/04/26/use-hexo/">use-hexo</a>也给了我帮助,致谢.</p>
+<h2>2. 动手</h2>
+<h3>2.1 我的环境</h3>
+<p>CentOS release 6.3 (Final)</p>
+<p>2.6.32-279.el6.x86_64</p>
+<h3>2.2 本地安装</h3>
+<h4>安装git</h4>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="title">yum</span> install git
+</pre></td></tr></table></figure>
+
+
+<p>git的ssh-key，我就不说了吧，把key拷贝进入github的个人设置中......</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre><span class="title">ssh</span>-keygen -t rsa
+<span class="title">cat</span> ~/.ssh/id_rsa.pub
+</pre></td></tr></table></figure>
+
+<h4>安装nodejs</h4>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre>wget http://nodejs<span class="preprocessor">.org</span>/dist/v0<span class="number">.11</span><span class="number">.0</span>/node-v0<span class="number">.11</span><span class="number">.0</span>-linux-x64<span class="preprocessor">.tar</span><span class="preprocessor">.gz</span>
+tar zxvf node-v0<span class="number">.11</span><span class="number">.0</span>-linux-x64<span class="preprocessor">.tar</span><span class="preprocessor">.gz</span>
+</pre></td></tr></table></figure>
+
+<p>为node.js修改环境变量</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="code"><pre><span class="title">vim</span> ~/.bashrc
+
+<span class="type">NODEJS_HOME</span>=/home/bigdata/node-v0<span class="number">.11</span><span class="number">.0</span>-linux-x64
+<span class="type">PATH</span>=$<span class="type">NODEJS_HOME</span>/bin:$<span class="type">PATH</span>
+<span class="title">export</span> <span class="type">NODEJS_HOME</span>
+<span class="title">export</span> <span class="type">PATH</span>
+
+<span class="title">source</span> ~/.bashrc
+</pre></td></tr></table></figure>
+
+<p>检查node.js是否安装成功</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre><span class="title">node</span> <span class="comment">--version</span>
+<span class="title">v0</span><span class="number">.11</span><span class="number">.0</span>
+</pre></td></tr></table></figure>
+
+<h4>安装npm</h4>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre>curl -s https://npmjs<span class="preprocessor">.org</span>/install<span class="preprocessor">.sh</span> &gt; npm-install-$$<span class="preprocessor">.sh</span>
+sh npm-install-*<span class="preprocessor">.sh</span>
+</pre></td></tr></table></figure>
+
+<h4>安装hexo</h4>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+</pre></td><td class="code"><pre>npm install hexo -g
+hexo init tonywutao<span class="variable">.github</span><span class="variable">.io</span>   
+cd tonywutao<span class="variable">.github</span><span class="variable">.io</span>
+</pre></td></tr></table></figure>
+
+<p>配置修改
+Site部分的自定义配置</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+</pre></td><td class="code"><pre><span class="label">title:</span> Blog of Tonywutao
+<span class="label">subtitle:</span>
+<span class="label">description:</span> Dev, Life, Talk
+<span class="label">author:</span> Tonywutao
+<span class="label">email:</span> tonywutao@gmail<span class="preprocessor">.com</span>
+<span class="label">language:</span> <span class="built_in">zh</span>-CN
+
+<span class="preprocessor"># URL</span>
+<span class="preprocessor">## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'</span>
+<span class="label">url:</span> http://tonywutao<span class="preprocessor">.github</span><span class="preprocessor">.io</span>
+<span class="label">root:</span> /
+<span class="label">permalink:</span> :year/:month/:day/:title/
+<span class="label">tag_dir:</span> tags
+<span class="label">archive_dir:</span> archives
+<span class="label">category_dir:</span> categories
+<span class="label">code_dir:</span> downloads/code
+</pre></td></tr></table></figure>
+
+<p>Git Deploy的配置</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+</pre></td><td class="code"><pre><span class="preprocessor"># Deployment</span>
+<span class="preprocessor">## Docs: http://zespia.tw/hexo/docs/deploy.html</span>
+<span class="label">deploy:</span>
+    type: github
+    repository: git@github<span class="preprocessor">.com</span>:tonywutao/tonywutao<span class="preprocessor">.github</span><span class="preprocessor">.io</span><span class="preprocessor">.git</span>
+    branch: master
+</pre></td></tr></table></figure>
+
+<p>Disqus的配置，disqus当然需要你先去disqus上注册，并为自己的博客地址生成key</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre><span class="preprocessor"># Disqus</span>
+disqus_shortname: blogoftonywutao
+</pre></td></tr></table></figure>
+
+<p>Theme的修改
+我比较喜欢memoir这个主题，将这个主题git clone到theme目录下，并命名为memoir即可</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre>git clone <span class="tag">&lt;<span class="title">repository</span>&gt;</span> themes/<span class="tag">&lt;<span class="title">theme-name</span>&gt;</span>
+</pre></td></tr></table></figure>
+
+<p>theme的地址为</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="label">https:</span>//github<span class="preprocessor">.com</span>/tommy351/hexo/wiki/Themes/
+</pre></td></tr></table></figure>
+
+<p>我执行的操作是</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="title">git</span> clone git<span class="variable">@github</span>.com:yhben/hexo-theme-memoir.git theme/memoir
+</pre></td></tr></table></figure>
+
+<p>至此，其实就装好了，后面就是写博客的事情了。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+</pre></td><td class="code"><pre>hexo <span class="keyword">new</span> <span class="string">"new post"</span>     <span class="preprocessor">#新写一个md的日志</span>
+hexo generate           <span class="preprocessor">#生成静态文件</span>
+hexo <span class="keyword">server</span>             <span class="preprocessor">#启动本地服务，可以查看本地博客是否正常</span>
+</pre></td></tr></table></figure>
+
+<p>部署到github</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="title">hexo</span> deploy
+</pre></td></tr></table></figure>
+
+<p>或者 </p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="comment">hexo</span> <span class="comment">deploy</span> <span class="literal">-</span><span class="literal">-</span><span class="comment">generate
+</pre></td></tr></table></figure>
+
+<p>要删除部署的文件</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="comment">rm</span> <span class="literal">-</span><span class="comment">rf</span> <span class="string">.</span><span class="comment">deploy
+</pre></td></tr></table></figure>
+
+<p>这样就差不多搞定了。</p>
+<h3>2.3 建立github pages</h3>
+<p>回过头来再说一下github pages的构建，只需在github登录后，新建一个tonywutao.github.io的project。然后在setting中publish pages。大约等10多分钟，就可以通过 tonywutao.github.io看到网站了。在hexo中，配置的远程git仓库，应指向这个github上的仓库。</p>
+<h3>2.4 写MardDown的工具</h3>
+<p>我的OS是windows，我是通过在线工具写的，我也尝试过sublime这样的工具，我认为最重要的是实时预览功能，不然太折腾了。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre><span class="label">http:</span>//benweet<span class="preprocessor">.github</span><span class="preprocessor">.io</span>/stackedit/
+</pre></td></tr></table></figure>
+
+<p>------END-------</p>
+<p>伍涛@成都</p>
+<p>2013-07-27</p>
+
+        
+        
+          
+        
+        </div>
+    </div>
+</div>
+                
+  
+    <div class="wide">
+    <div class="center">
+        <div class="head">
+            <div class="timeLine">
+                <time datetime="2012-04-23T00:00:00.000Z" class="date">
+                    <a href="/2012/04/22/distcp-tips/">4月 22 2012</a>
+                </time>
+            </div>
+        </div>
+        
+  
+    <h2 class="title"><a href="/2012/04/22/distcp-tips/">DistCP使用注意</a></h1>
+  
+
+        <div class="entry">
+        
+          <h2>DistCP使用注意</h2>
+<p>distcp主要用于在hadoop集群之间拷贝数据。</p>
+<h4>1. 如果haboop版本相同，可以使用如下格式</h4>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre>hadoop distcp hdfs://<span class="tag">&lt;<span class="title">hdfs_address:hdfs_port</span>&gt;</span>/src hdfs://<span class="tag">&lt;<span class="title">hdfs</span> <span class="attribute">address:port</span>&gt;</span>/des
+</pre></td></tr></table></figure>
+
+<h4>2. 如果在不同版本的hadoop集群之间拷贝数据，可以使用如下格式</h4>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+</pre></td><td class="code"><pre>hadoop distcp -i hftp://<span class="tag">&lt;<span class="title">hdfs_address:http_port</span>&gt;</span>&gt;/src hdfs://<span class="tag">&lt;<span class="title">hdfs</span> <span class="attribute">address:port</span>&gt;</span>/des
+</pre></td></tr></table></figure>
+
+<p>注意，这个时候，需要在目标集群上运行distcp， -i是忽略错误。</p>
+<p>注意hftp和ftp没有什么关系，它是通过http访问hdfs文件系统的协议包装，以支持不同版本之间拷贝数据。它的端口，不是dfs端口，而是http端口。</p>
+<h4>3. 实际应用</h4>
+<p>在我的应用中，一个是hadoop1.0.0集群，一个是cloudera cdh3u0集群，此时需要将hadoop1.0.0里面的数据拷贝到cloudera cdh3u0的hdfs中。因此采用hftp的distcp。</p>
+<p>更进一步，如果只是造无逻辑关系的数据，distcp没有只写的teragen或slive快。在我的测试中，teragen和slive的混合写入，磁盘写入速度可以达到300MB/s，网络io可以达到100+MB/s。而distcp，磁盘写入为100MB/s，网络io也达到100+MB/s。</p>
+<p>补充一下，如果是升级hdfs的hadoop版本，可以在启动时start-dfs -upgrade，这样即可以将文件系统升级至新的hadoop版本。如从hadoop-0.19 至hadoop-0.20，但是如果不是一脉相承的版本，升级也有问题。如我这边不能将hadoop-1.0.0与cloudera版本之间进行升级。</p>
+<h4>Reference</h4>
+<p><a href="http://hadoop.apache.org/hdfs/docs/current/hftp.html">http://hadoop.apache.org/hdfs/docs/current/hftp.html</a> </p>
+<p><a href="http://www.linezing.com/blog/?p=452">http://www.linezing.com/blog/?p=452</a></p>
+<p>------END-------</p>
+<p>伍涛@成都 重整</p>
+<p>2013-07-28</p>
+
+        
+        
+          
+        
+        </div>
+    </div>
+</div>
+                
+  
+    <div class="wide">
+    <div class="center">
+        <div class="head">
+            <div class="timeLine">
+                <time datetime="2012-03-22T00:00:00.000Z" class="date">
+                    <a href="/2012/03/21/hdfs-recover-source-code-analysis/">3月 21 2012</a>
+                </time>
+            </div>
+        </div>
+        
+  
+    <h2 class="title"><a href="/2012/03/21/hdfs-recover-source-code-analysis/">HDFS RecoverLease RecoverBlock源码分析</a></h1>
+  
+
+        <div class="entry">
+        
+          <h4>起因</h4>
+<p>最近需要搞一下Lease，分析一下recoverLease的过程，顺带把recoverBlock的过程分析一下。</p>
+<h4>1. RecoverLease</h4>
+<p>recoverLease是恢复租约，我理解为释放文件之前的租约，close文件，报告namenode。</p>
+<p>recoverLease有两条路径去调用</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+</pre></td><td class="code"><pre>DistributedFileSystem<span class="variable">.create</span> 
+-&gt; DFSClient<span class="variable">.create</span> 
+-&gt; Namenode<span class="variable">.create</span> 
+-&gt; FSNamesystem<span class="variable">.startFile</span> 
+-&gt; FSNamesystem<span class="variable">.startFileInternal</span> 
+-&gt; recoverLeaseInternal(myFile, src, holder, clientMachine, <span class="literal">false</span>)
+</pre></td></tr></table></figure>
+
+<p>这条路径是在客户端文件create时调用的，此时它不需要close文件。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre>DistributedFileSystem<span class="variable">.recoverLease</span> 
+-&gt; DFSClient<span class="variable">.recoverLease</span> 
+-&gt; Namenode<span class="variable">.recoverLease</span>(src,clientname) 
+-&gt; FSNamesystem<span class="variable">.recoverLease</span>(src,holder,clientMachine) 
+-&gt; recoverLeaseInternal(inode, src, holder, clientMachine, <span class="literal">true</span>)
+</pre></td></tr></table></figure>
+
+<p>这条路径是在客户端显式调用一个path的recoverLease，此时它需要close文件。
+参看 <a href="https://issues.apache.org/jira/browse/HDFS-1554">HDFS-1554</a></p>
+<p>以上两个路径，最终会调用FSNamesystem.recoverLeaseInternal，下面我们着重看一下recoverLeaseInternal，它主要做以下事情：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+</pre></td><td class="code"><pre><span class="bullet">1. </span>获得pendingfile，获得当前holder的lease
+<span class="bullet">2. </span>如果lease不为空，且不是force，则AlreadyBeingCreatedException
+<span class="bullet">3. </span>获得当前client的lease，如果lease为空，则AlreadyBeingCreatedException
+<span class="bullet">4. </span>如果force则强制internalReleaseLeaseOne；否则，如果超过softlimit，也强制internalReleaseLease，但也抛出AlreadyBeingCreatedException。
+</pre></td></tr></table></figure>
+
+<p>它会通过调用internalReleaseLeaseOne实现对recoverBlock的执行。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+</pre></td><td class="code"><pre><span class="comment">recoverLeaseInternal</span> 
+<span class="literal">-</span>&gt; <span class="comment">internalReleaseLease</span> 
+<span class="literal">-</span>&gt; <span class="comment">internalReleaseLeaseOne
+</pre></td></tr></table></figure>
+
+<p>internalReleaseLeaseOne的过程：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="code"><pre><span class="number">1.</span>找这个file的最后一个block的targets
+
+<span class="number">2.</span> pendingFile<span class="variable">.assignPrimaryDatanode</span>()  
+   -&gt; DatanodeDescriptor<span class="variable">.addBlockToBeRecovered</span>() 
+   -&gt; recoverBlocks<span class="variable">.offer</span>()
+    recoverBlocks会在datanode向namenode发送心跳包时，将recoverBlock的命令以   NN_RECOVERY的holder身份返回给datanode，datanode执行命令。
+
+<span class="number">3.</span>reassignLease
+</pre></td></tr></table></figure>
+
+<h4>2. RecoverBlock过程</h4>
+<p>recoverBlock是在Datanode上执行的，有两条路径调用，一个由Namenode发起的，一个DFSClient发起的。</p>
+<h5>2.1. Namenode发起recoverBlock</h5>
+<ul>
+<li><p>Namenode上的过程：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre>  <span class="transposed_variable">Namenode.</span>sendHeartbeat(datanode调用，向namenode发送心跳包，namenode返回<span class="built_in">i</span>要执行的cmd 
+  -&gt; <span class="transposed_variable">FSNamesystem.</span>handleHeartbeat 
+  -&gt; <span class="transposed_variable">DatanodeDescritor.</span>getLeaseRecoveryCommand 
+  -&gt; <span class="transposed_variable">recoverBlocks.</span>poll()
+  按照上面recoverLease的分析，如果有recoverLease的请求，BlockQueue类型的recoverBlocks就有待处理的recoverBlock
+</pre></td></tr></table></figure>
+</li>
+<li><p>Datanode上的过程</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="code"><pre><span class="comment">Datanode</span>.<span class="comment">run</span> 
+<span class="literal">-</span>&gt; <span class="comment">offerService()(一直运行，和namenode交互)</span> 
+<span class="literal">-</span>&gt; <span class="comment">processCommand(cmds</span> <span class="title">[</span><span class="title">]</span><span class="comment">)</span> 
+<span class="literal">-</span>&gt; <span class="comment">processCommand(cmd)</span> 
+<span class="literal">-</span>&gt; <span class="comment">DNA_RECOVERBLOCK</span> 
+<span class="literal">-</span>&gt; <span class="comment">recoverBlocks(bcmd</span>.<span class="comment">getBlocks()</span>, <span class="comment">bcmd</span>.<span class="comment">getTargets())</span> 
+<span class="literal">-</span>&gt; <span class="comment">recoverBlock(blocks</span>[<span class="comment">i</span>]<span class="string">,</span> <span class="comment">false</span>, <span class="comment">targets</span>[<span class="comment">i</span>]<span class="string">,</span> <span class="comment">true)</span> 
+   <span class="title">[</span><span class="comment">closeFile</span> <span class="comment">=</span> <span class="comment">true</span>]
+</pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>即datanode上有个心跳线程，默认每个3秒钟，向namenode汇报心跳包，并获得要在datanode上执行的cmd。如果有namenode发来的recoverBlock请求，</p>
+<p>datanode上最终会调用recoverBlock方法，此时closeFile=true。它是recoverLease发起的，此时要关闭文件，并使得这个文件的block在datanode上的信息一致。</p>
+<h5>2.2. DFSClient发起的recoverBlock</h5>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+</pre></td><td class="code"><pre>DFSClient.processDatanodeError 
+-&gt; DataNode.recoverBlock(<span class="keyword">Block</span> <span class="keyword">block</span>, <span class="typename">boolean</span> keepLength, DatanodeInfo[] targets) 
+-&gt; DataNode.recoverBlock(<span class="keyword">Block</span> <span class="keyword">block</span>, <span class="typename">boolean</span> keepLength, DatanodeInfo[] targets, false) [closeFile = false]
+</pre></td></tr></table></figure>
+
+<p>DFSClient通过dataStreamer发送block的packet数据，如果这个过程出现异常，会由processDatanodeError进行recover处理，即获得pipeline中错误的datanode，在剩余的两个datanode选取一个datanode发起recoverBlock，从这个datanode开始重建pipeline。</p>
+<p>此时调用datanode的recoverBlock传递的closeFile=false，因为在DFSClient写入Block出现异常时，需要的是recover，不是关闭文件。</p>
+<ul>
+<li>关于recoverBlock<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+</pre></td><td class="code"><pre><span class="function"><span class="title">recoverBlock</span><span class="params">(<span class="variable">Block</span> block, boolean keep<span class="variable">Length</span>, <span class="variable">DatanodeInfo</span>[] targets, boolean close<span class="variable">File</span>)</span>
+
+1.检查<span class="title">ongoingRecovery</span>中是否有这个<span class="title">block</span>正在<span class="title">recover</span>，如果有，则抛出IOE<span class="title">xception</span>，B<span class="title">lock</span> <span class="title">is</span> <span class="title">already</span> <span class="title">being</span> <span class="title">recovered</span>, <span class="title">ignoring</span> <span class="title">this</span> <span class="title">request</span> <span class="title">to</span> <span class="title">recover</span> <span class="title">it</span>。如果没有，则<span class="title">add</span>进入<span class="title">ongoingRecovery</span>
+
+2.根据<span class="title">targets</span>建立<span class="title">syncList</span>，即明确向哪些节点<span class="title">sync</span>哪个<span class="title">block</span>
+
+---&gt;</span> sync<span class="variable">Block</span>
+<span class="number">1</span>.首先为这次sync<span class="variable">Block</span>从namenode处获得generation<span class="variable">Stamp</span>
+<span class="number">2</span>.以新的generation<span class="variable">Stamp</span>创建新的new<span class="variable">Block</span>
+<span class="number">3</span>.对sync<span class="variable">List</span>中的每个datanode，执行update<span class="variable">Block</span>操作，将旧的block更新为new<span class="variable">Block</span>
+<span class="number">4</span>.如果执行成功，向namenode报告commit<span class="variable">BlockSynchronization</span>，包含新的block和generation<span class="variable">Stamp</span>
+<span class="number">5</span>.返回located<span class="variable">Block</span>
+
+<span class="pp">---&gt; updateBlock
+1</span>.<span class="variable">FSDataset</span>.update<span class="variable">Block</span>
+<span class="number">2</span>.如果finalize为<span class="literal">true</span>，<span class="variable">FSDataset</span>.finalize<span class="variable">BlockIfNeeded</span>；通知namenode已经received block
+</pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h2>以上，记录以备忘。</h2>
+<p>END-------</p>
+<p>伍涛@成都 重整</p>
+<p>2013-07-28</p>
+
+        
+        
+          
+        
+        </div>
+    </div>
+</div>
+                
+  
+    <div class="wide">
+    <div class="center">
+        <div class="head">
+            <div class="timeLine">
+                <time datetime="2012-03-13T00:00:00.000Z" class="date">
+                    <a href="/2012/03/12/java-objects-memory-structure/">3月 12 2012</a>
+                </time>
+            </div>
+        </div>
+        
+  
+    <h2 class="title"><a href="/2012/03/12/java-objects-memory-structure/">转载 - Java对象的内存结构</a></h1>
+  
+
+        <div class="entry">
+        
+          <h2>转载 - Java对象的内存结构</h2>
+<h4>起因</h4>
+<p>Java对象的内存结构非常重要，但是很多人不清楚，至少我之前也不清楚。特转载一篇文章，我觉得讲得很好。</p>
+<p><a href="http://www.codeinstructions.com/2008/12/java-objects-memory-structure.html">http://www.codeinstructions.com/2008/12/java-objects-memory-structure.html</a></p>
+<hr>
+<p>SATURDAY, DECEMBER 13, 2008</p>
+<h2>Java Objects Memory Structure</h2>
+<p>Update (December 18th, 2008): I&#39;ve posted here an experimental library that implements Sizeof for Java.</p>
+<p>One thing about Java that has always bothered me, given my C/C++ roots, is the lack of a way to figure out how much memory is used by an object. C++ features the sizeof operator, that lets you query the size of primitive types and also the size of objects of a given class. This operator in C and C++ is useful for pointer arithmetic, copying memory around, and IO, for example.</p>
+<p>Java doesn&#39;t have a corresponding operator. In reality, Java doesn&#39;t need one. Size of primitive types in Java is defined in the language specification, whereas in C and C++ it depends on the platform. Java has its own IO infrastructure built around serialization. And both pointer arithmetic and bulk memory copy don&#39;t apply because Java doesn&#39;t have pointers.</p>
+<p>But every Java developer at some point wondered how much memory is used by a Java object. The answer, it turns out, is not so simple.</p>
+<p>The first distinction to be made is between shallow size and deep size. The shallow size of an object is the space occupied by the object alone, not taking into account size of other objects that it references. The deep size, on the other hand, takes into account the shallow size of the object, plus the deep size of each object referenced by this object, recursively. Most of the times you will be interested on knowing the deep size of an object, but, in order to know that, you need to know how to calculate the shallow size first, which is what I&#39;m going to talk about here.</p>
+<p>One complication is that runtime in memory structure of Java objects is not enforced by the virtual machine specification, which means that virtual machine providers can implement them as they please. The consequence is that you can write a class, and instances of that class in one VM can occupy a different amount of memory than instances of that same class when run in another VM. Most of the world, including myself, uses the Sun HotSpot virtual machine though, which simplifies things a lot. The remainder of the discussion will focus on the 32 bit Sun JVM. I will lay down a few &#39;rules that will help explain how the JVM organizes the objects&#39; layout in memory.</p>
+<h4>Memory layout of classes that have no instance attributes</h4>
+<p>In the Sun JVM, every object (except arrays) has a 2 words header. The first word contains the object&#39;s identity hash code plus some flags like lock state and age, and the second word contains a reference to the object&#39;s class. Also, any object is aligned to an 8 bytes granularity. This is the first rule or objects memory layout:</p>
+<h5>Rule 1: every object is aligned to an 8 bytes granularity.</h5>
+<p>Now we know that if we call new Object(), we will be using 8 bytes of the heap for the two header words and nothing else, since theObject class doesn&#39;t have any fields.</p>
+<h4>Memory layout of classes that extend Object</h4>
+<p>After the 8 bytes of header, the class attributes follow. Attributes are always aligned in memory to their size. For instance, ints are aligned to a 4 byte granularity, and longs are aligned to an 8 byte granularity. There is a performance reason to do it this way: usually the cost to read a 4 bytes word from memory into a 4 bytes register of the processor is much cheaper if the word is aligned to a 4 bytes granularity.</p>
+<p>In order to save some memory, the Sun VM doesn&#39;t lay out object&#39;s attributes in the same order they are declared. Instead, the attributes are organized in memory in the following order:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre><span class="title">doubles</span> and longs
+<span class="title">ints</span> and floats
+<span class="title">shorts</span> and chars
+<span class="title">booleans</span> and bytes
+<span class="title">references</span>
+</pre></td></tr></table></figure>
+
+<p>This scheme allows for a good optimization of memory usage. For example, imagine you declared the following class:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="code"><pre><span class="title">class</span> MyClass {
+    <span class="title">byte</span> a;
+    <span class="title">int</span> c;
+    <span class="title">boolean</span> d;
+    <span class="title">long</span> e;
+    <span class="title">Object</span> f;        
+}
+</pre></td></tr></table></figure>
+
+<p>If the JVM didn&#39;t reorder the attributes, the object memory layout would be like this:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">8</span> bytes]  <span class="number">8</span>
+[a:       <span class="number">1</span> byte ]  <span class="number">9</span>
+[padding: <span class="number">3</span> bytes] <span class="number">12</span>
+[c:       <span class="number">4</span> bytes] <span class="number">16</span>
+[d:       <span class="number">1</span> byte ] <span class="number">17</span>
+[padding: <span class="number">7</span> bytes] <span class="number">24</span>
+[e:       <span class="number">8</span> bytes] <span class="number">32</span>
+[f:       <span class="number">4</span> bytes] <span class="number">36</span>
+[padding: <span class="number">4</span> bytes] <span class="number">40</span>
+</pre></td></tr></table></figure>
+
+<p>Notice that 14 bytes would have been wasted with padding and the object would use 40 bytes of memory. By reordering the objects using the rules above, the in memory structure of the object becomes:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">8</span> bytes]  <span class="number">8</span>
+[e:       <span class="number">8</span> bytes] <span class="number">16</span>
+[c:       <span class="number">4</span> bytes] <span class="number">20</span>
+[a:       <span class="number">1</span> byte ] <span class="number">21</span>
+[d:       <span class="number">1</span> byte ] <span class="number">22</span>
+[padding: <span class="number">2</span> bytes] <span class="number">24</span>
+[f:       <span class="number">4</span> bytes] <span class="number">28</span>
+[padding: <span class="number">4</span> bytes] <span class="number">32</span>
+</pre></td></tr></table></figure>
+
+<p>This time, only 6 bytes are used for padding and the object uses only 32 bytes of memory.</p>
+<p>So here is rule 2 of object memory layout:</p>
+<h5>Rule 2: class attributes are ordered like this: first longs and doubles; then ints and floats; then chars and shorts; then bytes and booleans, and last the references. The attributes are aligned to their own granularity.</h5>
+<p>Now we know how to calculate the memory used by any instance of a class that extends Object directly. One practical example is the java.lang.Boolean class. Here is its memory layout:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">8</span> bytes]  <span class="number">8</span> 
+[value:   <span class="number">1</span> byte ]  <span class="number">9</span>
+[padding: <span class="number">7</span> bytes] <span class="number">16</span>
+</pre></td></tr></table></figure>
+
+<p>An instance of the Boolean class takes 16 bytes of memory! Surprised? (Notice the padding at the end to align the object size to an 8 bytes granularity.)</p>
+<h4>Memory layout of subclasses of other classes</h4>
+<p>The next three rules are followed by the JVM to organize the the fields of classes that have superclasses. Rule 3 of object memory layout is the following:</p>
+<h5>Rule 3: Fields that belong to different classes of the hierarchy are NEVER mixed up together. Fields of the superclass come first, obeying rule 2, followed by the fields of the subclass.</h5>
+<p>Here is an example:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="code"><pre><span class="class"><span class="keyword">class</span> <span class="title">A</span> {</span>
+   <span class="keyword">long</span> a;
+   <span class="keyword">int</span> b;
+   <span class="keyword">int</span> c;
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">B</span> <span class="keyword">extends</span> <span class="title">A</span> {</span>
+   <span class="keyword">long</span> d;
+}
+</pre></td></tr></table></figure>
+
+<p>An instance of B looks like this in memory:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">8</span> bytes]  <span class="number">8</span>
+[a:       <span class="number">8</span> bytes] <span class="number">16</span>
+[b:       <span class="number">4</span> bytes] <span class="number">20</span>
+[c:       <span class="number">4</span> bytes] <span class="number">24</span>
+[d:       <span class="number">8</span> bytes] <span class="number">32</span>
+</pre></td></tr></table></figure>
+
+<p>The next rule is used when the fields of the superclass don&#39;t fit in a 4 bytes granularity. Here is what it says:</p>
+<h5>Rule 4: Between the last field of the superclass and the first field of the subclass there must be padding to align to a 4 bytes boundary.</h5>
+<p>Here is an example:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="code"><pre><span class="class"><span class="keyword">class</span> <span class="title">A</span> {</span>
+   <span class="keyword">byte</span> a;
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">B</span> {</span>
+   <span class="keyword">byte</span> b;
+}
+</pre></td></tr></table></figure>
+
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">8</span> bytes]  <span class="number">8</span>
+[a:       <span class="number">1</span> byte ]  <span class="number">9</span>
+[padding: <span class="number">3</span> bytes] <span class="number">12</span>
+[b:       <span class="number">1</span> byte ] <span class="number">13</span>
+[padding: <span class="number">3</span> bytes] <span class="number">16</span>
+</pre></td></tr></table></figure>
+
+<p>Notice the 3 bytes padding after field a to align b to a 4 bytes granularity. That space is lost and cannot be used by fields of class B.</p>
+<p>The final rule is applied to save some space when the first field of the subclass is a long or double and the parent class doesn&#39;t end in an 8 bytes boundary.</p>
+<h5>Rule 5: When the first field of a subclass is a double or long and the superclass doesn&#39;t align to an 8 bytes boundary, JVM will break rule 2 and try to put an int, then shorts, then bytes, and then references at the beginning of the space reserved to the subclass until it fills the gap.</h5>
+<p>Here is an example:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="code"><pre><span class="title">class</span> A {
+  <span class="title">byte</span> a;
+}
+
+<span class="title">class</span> B {
+  <span class="title">long</span> b;
+  <span class="title">short</span> c;  
+  <span class="title">byte</span> d;
+}
+</pre></td></tr></table></figure>
+
+<p>Here is the memory layout:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">8</span> bytes]  <span class="number">8</span>
+[a:       <span class="number">1</span> byte ]  <span class="number">9</span>
+[padding: <span class="number">3</span> bytes] <span class="number">12</span>
+[c:       <span class="number">2</span> bytes] <span class="number">14</span>
+[d:       <span class="number">1</span> byte ] <span class="number">15</span>
+[padding: <span class="number">1</span> byte ] <span class="number">16</span>
+[b:       <span class="number">8</span> bytes] <span class="number">24</span>
+</pre></td></tr></table></figure>
+
+<p>At byte 12, which is where class A &#39;ends&#39;, the JVM broke rule 2 and stuck a short and a byte before a long, to save 3 out of 4 bytes that would otherwise have been wasted.</p>
+<p>Memory layout of arrays</p>
+<p>Arrays have an extra header field that contain the value of the &#39;length&#39; variable. The array elements follow, and the arrays, as any regular objects, are also aligned to an 8 bytes boundary.</p>
+<p>Here is the layout of a byte array with 3 elements:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">12</span> bytes] <span class="number">12</span>
+[[<span class="number">0</span>]:      <span class="number">1</span> byte ] <span class="number">13</span>
+[[<span class="number">1</span>]:      <span class="number">1</span> byte ] <span class="number">14</span>
+[[<span class="number">2</span>]:      <span class="number">1</span> byte ] <span class="number">15</span>
+[padding:  <span class="number">1</span> byte ] <span class="number">16</span>
+</pre></td></tr></table></figure>
+
+<p>And here is the layout of a long array with 3 elements:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">12</span> bytes] <span class="number">12</span>
+[padding:  <span class="number">4</span> bytes] <span class="number">16</span>
+[[<span class="number">0</span>]:      <span class="number">8</span> bytes] <span class="number">24</span>
+[[<span class="number">1</span>]:      <span class="number">8</span> bytes] <span class="number">32</span>
+[[<span class="number">2</span>]:      <span class="number">8</span> bytes] <span class="number">40</span>
+</pre></td></tr></table></figure>
+
+<h4>Memory layout of inner classes</h4>
+<p>Non-static inner classes have an extra &#39;hidden&#39; field that holds a reference to the outer class. This field is a regular reference and it follows the rule of the in memory layout of references. Inner classes, for this reason, have an extra 4 bytes cost.</p>
+<h4>Final thoughts</h4>
+<p>We have learned how to calculate the shallow size of any Java object in the 32 bit Sun JVM. Knowing how memory is structured can help you understand how much memory is used by instances of your classes.</p>
+<p>In the next post I will will show code that puts it all together and uses reflection to calculate the deep size of an object. Subscribe to my Feed or keep watching this blog for updates!</p>
+<p>POSTED BY DOMINGOS NETO AT 11:05 PM
+TAGS: JAVA</p>
+<hr>
+<p>------END-------</p>
+<p>伍涛@成都 重整</p>
+<p>2013-07-28</p>
+
+        
+        
+          
+        
+        </div>
+    </div>
+</div>
+                
+  
+    <div class="wide">
+    <div class="center">
+        <div class="head">
+            <div class="timeLine">
+                <time datetime="2012-03-09T00:00:00.000Z" class="date">
+                    <a href="/2012/03/08/sockettimeoutexception-when-hbase-heavily-writing/">3月 8 2012</a>
+                </time>
+            </div>
+        </div>
+        
+  
+    <h2 class="title"><a href="/2012/03/08/sockettimeoutexception-when-hbase-heavily-writing/">大并发写时，HBase的HDFS DFSClient端报SocketTimeoutException的问题分析和解决</a></h1>
+  
+
+        <div class="entry">
+        
+          <h2>问题现象</h2>
+<p>HBase大并发写，出现异常日志：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+</pre></td><td class="code"><pre><span class="number">2012</span>-<span class="number">03</span>-<span class="number">02</span> <span class="number">12</span>:<span class="number">11</span>:<span class="number">21</span>,<span class="number">983</span> WARN <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">hdfs.</span>DFSClient: DFSOutputStream ResponseProcessor exception  <span class="keyword">for</span> block <span class="transposed_variable">blk_1439491087566691588_6207java.</span><span class="transposed_variable">net.</span>SocketTimeoutException: <span class="number">69000</span> millis timeout <span class="keyword">while</span> waiting <span class="keyword">for</span> channel to be ready <span class="keyword">for</span> <span class="transposed_variable">read.</span> ch : <span class="transposed_variable">java.</span><span class="transposed_variable">nio.</span><span class="transposed_variable">channels.</span>SocketChannel<span class="matrix">[connected local=/dw1:<span class="number">54889</span> remote=/dw2:<span class="number">62010</span>]</span>
+        at <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">net.</span><span class="transposed_variable">SocketIOWithTimeout.</span>doIO(<span class="transposed_variable">SocketIOWithTimeout.</span>java:<span class="number">164</span>)
+        at <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">net.</span><span class="transposed_variable">SocketInputStream.</span>read(<span class="transposed_variable">SocketInputStream.</span>java:<span class="number">150</span>)
+        at <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">net.</span><span class="transposed_variable">SocketInputStream.</span>read(<span class="transposed_variable">SocketInputStream.</span>java:<span class="number">123</span>)
+        at <span class="transposed_variable">java.</span><span class="transposed_variable">io.</span><span class="transposed_variable">DataInputStream.</span>readFully(<span class="transposed_variable">DataInputStream.</span>java:<span class="number">178</span>)
+        at <span class="transposed_variable">java.</span><span class="transposed_variable">io.</span><span class="transposed_variable">DataInputStream.</span>readLong(<span class="transposed_variable">DataInputStream.</span>java:<span class="number">399</span>)
+        at <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">hdfs.</span><span class="transposed_variable">protocol.</span>DataTransferProtocol$<span class="transposed_variable">PipelineAck.</span>readFields(<span class="transposed_variable">DataTransferProtocol.</span>java:<span class="number">130</span>)
+        at <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">hdfs.</span>DFSClient$DFSOutputStream$<span class="transposed_variable">ResponseProcessor.</span>run(<span class="transposed_variable">DFSClient.</span>java:<span class="number">2459</span>)
+
+<span class="number">2012</span>-<span class="number">03</span>-<span class="number">02</span> <span class="number">12</span>:<span class="number">11</span>:<span class="number">21</span>,<span class="number">984</span> WARN <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">hdfs.</span>DFSClient: Error Recovery <span class="keyword">for</span> block blk_1439491087566691588_6207 bad datanode<span class="matrix">[<span class="number">0</span>]</span>dw2:<span class="number">62010</span>
+<span class="number">2012</span>-<span class="number">03</span>-<span class="number">02</span> <span class="number">12</span>:<span class="number">11</span>:<span class="number">21</span>,<span class="number">984</span> WARN <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">hdfs.</span>DFSClient: Error Recovery <span class="keyword">for</span> block blk_1439491087566691588_6207 in pipelinedw2:<span class="number">62010</span>,dw1:<span class="number">62010</span>,dw3:<span class="number">62010</span>: bad datanode dw2:<span class="number">62010</span>
+<span class="number">2012</span>-<span class="number">03</span>-<span class="number">02</span> <span class="number">12</span>:<span class="number">11</span>:<span class="number">22</span>,<span class="number">128</span> WARN <span class="transposed_variable">org.</span><span class="transposed_variable">apache.</span><span class="transposed_variable">hadoop.</span><span class="transposed_variable">hbase.</span><span class="transposed_variable">regionserver.</span><span class="transposed_variable">wal.</span>HLog: HDFS pipeline error <span class="transposed_variable">detected.</span> Found <span class="number">2</span> replicas but expecting <span class="number">3</span> <span class="transposed_variable">replicas.</span>  Requesting close of <span class="transposed_variable">hlog.</span>
+</pre></td></tr></table></figure>
+
+<h2>代码分析</h2>
+<p>正常情况下DFSClient写block数据的过程是：</p>
+<h3>1. DFSClient端</h3>
+<ul>
+<li>DFSOutputStream负责数据的接收和写入，即通过DFSOutputSummer中的write方法（synchronized）获得数据，而sync（主要代码 synchronized(this)）通过FlushBuffer建立packet后，通过enqueuePacket向dataQueue中写入数据。</li>
+<li>DFSOutputStream中的DataStreamer（Daemon线程），负责向DataNode发送数据，每次发送前会检查dataQueue中是否有数据，没有就等待。</li>
+<li>DataStreamer建立pipeline传输数据时，对这个pipeline会起一个ResponseProcessor（Thread）去获得DataNode的反馈ack，并判断是否有错误、进行recoverBlock等</li>
+</ul>
+<h3>2. DataNode端</h3>
+<ul>
+<li>在每个packet传输过程中，根据建立数据传输的pipleLine，上游依次向下游发送数据，下游依次向上游发送ack。</li>
+<li>pipeline的最后一个节点（numTarget=0），PacketResponder 会一直运行lastDatanodeRun?方法，这个方法会在ack发送完毕(ackQueue.size()=0)后约1/2个dfs.socket.timeout?时刻发送心跳包，沿着pipeline发送给client。</li>
+</ul>
+<h3>3. HBase端</h3>
+<ul>
+<li>HBase端通过hlog中的writer向hdfs写数据，每次有数据写入，都会sync。同时，HLog中有个logSyncer，默认配置是每秒钟调用一次sync，不管有没有数据写入。</li>
+</ul>
+<h2>问题分析</h2>
+<p>这个问题首先是由于超时引起的，我们先分析一下超时前后DFSClient和DataNode上发生了什么。</p>
+<h3>1. 问题重现</h3>
+<ul>
+<li>客户端ResponseProcessor报69秒socket超时，出错点在PipelineAck.readFields()。出错后直接catch，标记hasError=true，closed=true。这个线程不会停止。</li>
+<li>DataStreamer在轮询中调用processDatanodeError对hasError=true进行处理。此时errorIndex=0（默认值），首先会抛出Recovery for Block的异常. 然后关闭blockstream，重新基于两个节点的pipeline进行recoverBlock。</li>
+<li>在DataNode上，processDatanodeError()关闭blockstream。这将导致pipeline中的packetResponder被interrupted和terminated。</li>
+<li>在DataNode上，processDatanodeError()关闭blockstream，导致BlockReceiver的readNextPacket()中的readToBuf读取不到数据，throw EOFException的异常。这个异常一直向上抛，直到DataXceiver的run中，它将导致DataXceiver中止运行，提示DataNode.dnRegistration Error。</li>
+<li>recoverBlock会正常进行，并先在两个节点上完成（第二个和第三个）。随后Namenode会发现replicas数量不足，向DataNode发起transfer block的命令，这是一个异步的过程。但是在hlog检查时，transfer很有可能未完成，这时会报 pipeline error detected. Found 2 replicas but expecting 3 replicas。并关闭hlog。</li>
+</ul>
+<p>以上就是根据日志可以看到的错误过程。</p>
+<h3>2. 问题分析</h3>
+<ul>
+<li>为什么会超时，为什么心跳包没有发？
+根据以上的分析，ResponseProcessor socket 69秒超时是导致后续一系列异常和hlog关闭的原因。那么为何会发生socket超时？ResponseProcessor应该会在dfs.socket.timeout的1/2时间内收到HeartBeat包。
+经过打印日志，我们发现，DataNode上配置的dfs.socket.timeout为180秒，而HBase调用DFSClient时采用默认配置，即60秒。因此，DFSClient认为超时时间为3×nodes.length+60=69秒，而DataNode端发送心跳包的timeout=1/2×180=90秒！因此，如果在没有数据写入的情况下，DataNode将在90秒后发送心跳包，此时DFSClient已经socketTimeout了，并导致后续的一系列现象。</li>
+<li>为什么会在69秒内没有新的packet发送过去呢？
+我们先分析一下DFSOutputStream写数据和sync的同步关系。DFSOutputStream继承自FSOutputSummer，DFSOutputStream接收数据是通过FSOutputSummer的write方法，这个方法是synchronized。而sync方法的flushBuffer()和enqueuePacket()，也在synchronized(this)代码块中。也就是说，对一个DFSOutputStream线程，如果sync和write同时调用，将发生同步等待。在hbase的场景下，sync发生的频率非常高，sync抢到锁的可能性很大。这样，就很有可能在不断的sync，不断的flushBuffer，但是却没能通过write写入数据（被blocked了）。这就是导致超时时间内一直没有packet发送的原因。</li>
+</ul>
+<p>综上，HBase业务调用的特点和DFSOutputStream的synchronized代码块，很有可能69秒中没有packet写入。但这个时候，不应该socket超时，socket超时是这个问题的根本原因，而socket超时的原因是配置不一致。</p>
+<h3>3. 问题解决</h3>
+<p>在hdfs端和hbase端，配置同样的dfs.socket.timeout值。在云梯环境下配置的是180000（180秒）。</p>
+<p>------END-------</p>
+<p>伍涛@成都</p>
+<p>2013-07-27</p>
+
+        
+        
+          
+        
+        </div>
+    </div>
+</div>
+                
+  
+    <div class="wide">
+    <div class="center">
+        <div class="head">
+            <div class="timeLine">
+                <time datetime="2012-03-06T00:00:00.000Z" class="date">
+                    <a href="/2012/03/05/ganglia-running-process-issue/">3月 5 2012</a>
+                </time>
+            </div>
+        </div>
+        
+  
+    <h2 class="title"><a href="/2012/03/05/ganglia-running-process-issue/">Ganglia Running Process的一次异常情况分析</a></h1>
+  
+
+        <div class="entry">
+        
+          <h2>Ganglia Running Process的一次异常情况分析</h2>
+<h4>Ganglia Running Process的计算</h4>
+<p>Ganglia running processes是怎么算出来的？ganglia是通过这个命令获得running processes的。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre><span class="title">cat</span> /proc/loadavg
+<span class="number">0</span>.<span class="number">00</span> <span class="number">0</span>.<span class="number">28</span> <span class="number">0</span>.<span class="number">61</span> <span class="number">1</span>/<span class="number">591</span> <span class="number">2993</span>
+</pre></td></tr></table></figure>
+
+<p>其中，1是running process，591是total process。</p>
+<h4>问题及排查</h4>
+<p>在一个新版hadoop的测试中，意外发现running process数量上涨。为了追踪ganglia图上突然出现的14个running processes，调查了一下。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre><span class="title">ps</span> <span class="type">Haxh</span>
+<span class="title">cat</span> /proc/loadavg
+</pre></td></tr></table></figure>
+
+<p>这两个命令查询出来的total processes和的total processes是一致的，状态为R的即是running process。</p>
+<p>于是又写了个脚本，在启动namenode的期间，每隔0.5秒打印出/proc/loadavg 和 ps Haxh的数据，查看何时出现14个running processes的。</p>
+<p>最后发现，不管有没有这个patch，都有可能出现running processes从1上升至6，甚至14的情况。这些processes是namenode的子线程，在某些情况下状态为Rl，R是运行态，l是多线程，在/proc/loadavg中被计算成了running processes。这些子线程运行的时间很短，ganglia是每分钟获得一次数据，很有可能没有采集到。</p>
+<p>因此，我之前测试时ganglia图示上的差别，只是巧合，导致我认为加上patch之后有问题。我通过几次实验，看到没有patch时，也会出现ganglia图中running processes上升的情况。</p>
+<p>Reference</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre></td><td class="code"><pre>PROCESS STATE CODES
+       Here are <span class="keyword">the</span> different values <span class="keyword">that</span> <span class="keyword">the</span> s, stat <span class="keyword">and</span> state output specifiers (header <span class="string">"STAT"</span> <span class="keyword">or</span> <span class="string">"S"</span>) will display <span class="keyword">to</span> describe <span class="keyword">the</span> state <span class="keyword">of</span> a process.
+       D    Uninterruptible sleep (usually IO)
+       R    Running <span class="keyword">or</span> runnable (<span class="function_start"><span class="keyword">on</span> <span class="title">run</span></span> queue)
+       S    Interruptible sleep (waiting <span class="keyword">for</span> an event <span class="keyword">to</span> complete)
+       T    Stopped, either <span class="keyword">by</span> a job control signal <span class="keyword">or</span> because <span class="keyword">it</span> <span class="keyword">is</span> being traced.
+       W    paging (<span class="keyword">not</span> valid <span class="keyword">since</span> <span class="keyword">the</span> <span class="number">2.6</span>.xx kernel)
+       X    dead (should never be seen)
+       Z    Defunct (<span class="string">"zombie"</span>) process, terminated <span class="keyword">but</span> <span class="keyword">not</span> reaped <span class="keyword">by</span> <span class="keyword">its</span> parent.
+
+       For BSD formats <span class="keyword">and</span> when <span class="keyword">the</span> stat keyword <span class="keyword">is</span> used, additional <span class="property">characters</span> may be displayed:
+       &lt;    high-priority (<span class="keyword">not</span> nice <span class="keyword">to</span> other users)
+       N    low-priority (nice <span class="keyword">to</span> other users)
+       L    has pages locked <span class="keyword">into</span> memory (<span class="keyword">for</span> <span class="type">real</span>-<span class="property">time</span> <span class="keyword">and</span> custom IO)
+       s    <span class="keyword">is</span> a session leader
+       l    <span class="keyword">is</span> multi-threaded (using CLONE_THREAD, like NPTL pthreads do)
+       +    <span class="keyword">is</span> <span class="keyword">in</span> <span class="keyword">the</span> foreground process group
+</pre></td></tr></table></figure>
+
+<p>------END-------</p>
+<p>伍涛@成都 重整</p>
+<p>2013-07-28</p>
+
+        
+        
+          
+        
+        </div>
+    </div>
+</div>
+                
+  
+    <div class="wide">
+    <div class="center">
+        <div class="head">
+            <div class="timeLine">
+                <time datetime="2011-11-29T00:00:00.000Z" class="date">
+                    <a href="/2011/11/28/hbase-cluster-upgrade/">11月 28 2011</a>
+                </time>
+            </div>
+        </div>
+        
+  
+    <h2 class="title"><a href="/2011/11/28/hbase-cluster-upgrade/">HBase线上集群硬件升级纪要</a></h1>
+  
+
+        <div class="entry">
+        
+          <h2>HBase线上集群硬件升级纪要</h2>
+<h4>1. 现状</h4>
+<p>15台region server，4000多个region。</p>
+<h4>2.升级目标</h4>
+<p>将原有15台配置较差的region server，升级为新的配置好的服务器。这是一次硬件升级。即用新的15台机器，替换旧的15台机器。</p>
+<h4>3.升级过程</h4>
+<p>为了保证升级平稳过渡，采用以下策略</p>
+<ul>
+<li><p>将新的15台 server加入到region server集群中；</p>
+</li>
+<li><p>观察region server的负载分布，等待这30个region server均匀；</p>
+</li>
+<li><p>待均匀后，让原有的region server下线；</p>
+</li>
+<li><p>等待region的恢复</p>
+</li>
+</ul>
+<p>以上过程，大约耗时5分钟可以完成，期间数据可以访问。在d步骤中，前3分钟没有什么反应（从基于hdfs的hlog中读取恢复region），后续两分钟，2000多个region恢复上线。</p>
+<p>------END-------</p>
+<p>伍涛@成都 重整</p>
+<p>2013-07-28</p>
+
+        
+        
+          
+        
+        </div>
+    </div>
+</div>
+                
+  
+
+                  
+</div>
+        </div>
+
+  <footer>
+  
+  &copy; 2013 Tonywutao
+  
+</footer>
+  <script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blogoftonywutao';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

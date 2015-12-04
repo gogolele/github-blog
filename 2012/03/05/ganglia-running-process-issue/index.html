@@ -1,0 +1,242 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Ganglia Running Process的一次异常情况分析 | Blog of Tonywutao</title>
+  <meta name="author" content="Tonywutao">
+  
+  <meta name="description" content="Dev, Life, Talk">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Ganglia Running Process的一次异常情况分析"/>
+  <meta property="og:site_name" content="Blog of Tonywutao"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Blog of Tonywutao" type="application/atom+xml">
+  <link rel="stylesheet" href="/stylesheets/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/stylesheets/social_foundicons.css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script src="http://upcdn.b0.upaiyun.com/libs/jquery/jquery-1.8.3.min.js"></script>
+  
+</head>
+
+
+<body>
+        <script type="text/javascript">
+        /**
+         * 回到页面顶部
+         * @param acceleration 加速度
+         * @param time 时间间隔 (毫秒)
+         **/
+        function goTop(acceleration, time) {
+            acceleration = acceleration || 0.1;
+            time = time || 16;
+
+            var x1 = 0;
+            var y1 = 0;
+            var x2 = 0;
+            var y2 = 0;
+            var x3 = 0;
+            var y3 = 0;
+
+            if (document.documentElement) {
+                x1 = document.documentElement.scrollLeft || 0;
+                y1 = document.documentElement.scrollTop || 0;
+            }
+            if (document.body) {
+                x2 = document.body.scrollLeft || 0;
+                y2 = document.body.scrollTop || 0;
+            }
+            var x3 = window.scrollX || 0;
+            var y3 = window.scrollY || 0;
+
+            // 滚动条到页面顶部的水平距离
+            var x = Math.max(x1, Math.max(x2, x3));
+            // 滚动条到页面顶部的垂直距离
+            var y = Math.max(y1, Math.max(y2, y3));
+
+            // 滚动距离 = 目前距离 / 速度, 因为距离原来越小, 速度是大于 1 的数, 所以滚动距离会越来越小
+            var speed = 1 + acceleration;
+            window.scrollTo(Math.floor(x / speed), Math.floor(y / speed));
+
+            // 如果距离不为零, 继续调用迭代本函数
+            if(x > 0 || y > 0) {
+                var invokeFunction = "goTop(" + acceleration + ", " + time + ")";
+                window.setTimeout(invokeFunction, time);
+            }
+        }
+    </script>
+    <a href="#" onclick="goTop();return false;" class="backTop">▲</a>
+        <header>
+            <div class="wrapper">
+                <div class="center">
+                    <div class="searchBox"></div>
+                    <div class="headerMenu">
+                        <ul>
+                            
+                            <li><a href="/">Home</a></li>
+                            
+                            <li><a href="/archives">Archives</a></li>
+                            
+                        </ul>
+                    </div>
+                    <div class="socnets">
+                        
+                        
+                        <a href="/atom.xml" alt="rss"><i class="foundicon-rss"></i></a>
+                        
+                        <a href="mailto:tonywutao@gmail.com"><i class="foundicon-chat"></i></a>
+                        
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main">
+                        <div class="brand">
+                <div class="wide">
+                    <div class="center">
+                        <h1>
+                            <a href="/">Blog of Tonywutao</a>
+                        </h1>
+                        <p>
+                            
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="content"><div class="wide">
+    <div class="center">
+        <div class="head">
+            <div class="timeLine">
+                <time datetime="2012-03-06T00:00:00.000Z" class="date">
+                    <a href="/2012/03/05/ganglia-running-process-issue/">3月 5 2012</a>
+                </time>
+            </div>
+        </div>
+        
+  
+    <h2 class="title">Ganglia Running Process的一次异常情况分析</h1>
+  
+
+        <div class="entry">
+        
+          <h2>Ganglia Running Process的一次异常情况分析</h2>
+<h4>Ganglia Running Process的计算</h4>
+<p>Ganglia running processes是怎么算出来的？ganglia是通过这个命令获得running processes的。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre><span class="title">cat</span> /proc/loadavg
+<span class="number">0</span>.<span class="number">00</span> <span class="number">0</span>.<span class="number">28</span> <span class="number">0</span>.<span class="number">61</span> <span class="number">1</span>/<span class="number">591</span> <span class="number">2993</span>
+</pre></td></tr></table></figure>
+
+<p>其中，1是running process，591是total process。</p>
+<h4>问题及排查</h4>
+<p>在一个新版hadoop的测试中，意外发现running process数量上涨。为了追踪ganglia图上突然出现的14个running processes，调查了一下。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+</pre></td><td class="code"><pre><span class="title">ps</span> <span class="type">Haxh</span>
+<span class="title">cat</span> /proc/loadavg
+</pre></td></tr></table></figure>
+
+<p>这两个命令查询出来的total processes和的total processes是一致的，状态为R的即是running process。</p>
+<p>于是又写了个脚本，在启动namenode的期间，每隔0.5秒打印出/proc/loadavg 和 ps Haxh的数据，查看何时出现14个running processes的。</p>
+<p>最后发现，不管有没有这个patch，都有可能出现running processes从1上升至6，甚至14的情况。这些processes是namenode的子线程，在某些情况下状态为Rl，R是运行态，l是多线程，在/proc/loadavg中被计算成了running processes。这些子线程运行的时间很短，ganglia是每分钟获得一次数据，很有可能没有采集到。</p>
+<p>因此，我之前测试时ganglia图示上的差别，只是巧合，导致我认为加上patch之后有问题。我通过几次实验，看到没有patch时，也会出现ganglia图中running processes上升的情况。</p>
+<p>Reference</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre></td><td class="code"><pre>PROCESS STATE CODES
+       Here are <span class="keyword">the</span> different values <span class="keyword">that</span> <span class="keyword">the</span> s, stat <span class="keyword">and</span> state output specifiers (header <span class="string">"STAT"</span> <span class="keyword">or</span> <span class="string">"S"</span>) will display <span class="keyword">to</span> describe <span class="keyword">the</span> state <span class="keyword">of</span> a process.
+       D    Uninterruptible sleep (usually IO)
+       R    Running <span class="keyword">or</span> runnable (<span class="function_start"><span class="keyword">on</span> <span class="title">run</span></span> queue)
+       S    Interruptible sleep (waiting <span class="keyword">for</span> an event <span class="keyword">to</span> complete)
+       T    Stopped, either <span class="keyword">by</span> a job control signal <span class="keyword">or</span> because <span class="keyword">it</span> <span class="keyword">is</span> being traced.
+       W    paging (<span class="keyword">not</span> valid <span class="keyword">since</span> <span class="keyword">the</span> <span class="number">2.6</span>.xx kernel)
+       X    dead (should never be seen)
+       Z    Defunct (<span class="string">"zombie"</span>) process, terminated <span class="keyword">but</span> <span class="keyword">not</span> reaped <span class="keyword">by</span> <span class="keyword">its</span> parent.
+
+       For BSD formats <span class="keyword">and</span> when <span class="keyword">the</span> stat keyword <span class="keyword">is</span> used, additional <span class="property">characters</span> may be displayed:
+       &lt;    high-priority (<span class="keyword">not</span> nice <span class="keyword">to</span> other users)
+       N    low-priority (nice <span class="keyword">to</span> other users)
+       L    has pages locked <span class="keyword">into</span> memory (<span class="keyword">for</span> <span class="type">real</span>-<span class="property">time</span> <span class="keyword">and</span> custom IO)
+       s    <span class="keyword">is</span> a session leader
+       l    <span class="keyword">is</span> multi-threaded (using CLONE_THREAD, like NPTL pthreads do)
+       +    <span class="keyword">is</span> <span class="keyword">in</span> <span class="keyword">the</span> foreground process group
+</pre></td></tr></table></figure>
+
+<p>------END-------</p>
+<p>伍涛@成都 重整</p>
+<p>2013-07-28</p>
+
+        
+        
+        </div>
+    </div>
+</div>
+                
+                <div class="wide">
+                    <div class="center">
+                        <div id="disqus_thread">
+                            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                        </div>
+                    </div>
+                </div>
+                </div>
+        </div>
+
+  <footer>
+  
+  &copy; 2013 Tonywutao
+  
+</footer>
+  <script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blogoftonywutao';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

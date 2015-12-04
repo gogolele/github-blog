@@ -1,0 +1,433 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Java Object, Memory | Blog of Tonywutao</title>
+  <meta name="author" content="Tonywutao">
+  
+  <meta name="description" content="Dev, Life, Talk">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="Blog of Tonywutao"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Blog of Tonywutao" type="application/atom+xml">
+  <link rel="stylesheet" href="/stylesheets/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/stylesheets/social_foundicons.css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script src="http://upcdn.b0.upaiyun.com/libs/jquery/jquery-1.8.3.min.js"></script>
+  
+</head>
+
+
+<body>
+        <script type="text/javascript">
+        /**
+         * 回到页面顶部
+         * @param acceleration 加速度
+         * @param time 时间间隔 (毫秒)
+         **/
+        function goTop(acceleration, time) {
+            acceleration = acceleration || 0.1;
+            time = time || 16;
+
+            var x1 = 0;
+            var y1 = 0;
+            var x2 = 0;
+            var y2 = 0;
+            var x3 = 0;
+            var y3 = 0;
+
+            if (document.documentElement) {
+                x1 = document.documentElement.scrollLeft || 0;
+                y1 = document.documentElement.scrollTop || 0;
+            }
+            if (document.body) {
+                x2 = document.body.scrollLeft || 0;
+                y2 = document.body.scrollTop || 0;
+            }
+            var x3 = window.scrollX || 0;
+            var y3 = window.scrollY || 0;
+
+            // 滚动条到页面顶部的水平距离
+            var x = Math.max(x1, Math.max(x2, x3));
+            // 滚动条到页面顶部的垂直距离
+            var y = Math.max(y1, Math.max(y2, y3));
+
+            // 滚动距离 = 目前距离 / 速度, 因为距离原来越小, 速度是大于 1 的数, 所以滚动距离会越来越小
+            var speed = 1 + acceleration;
+            window.scrollTo(Math.floor(x / speed), Math.floor(y / speed));
+
+            // 如果距离不为零, 继续调用迭代本函数
+            if(x > 0 || y > 0) {
+                var invokeFunction = "goTop(" + acceleration + ", " + time + ")";
+                window.setTimeout(invokeFunction, time);
+            }
+        }
+    </script>
+    <a href="#" onclick="goTop();return false;" class="backTop">▲</a>
+        <header>
+            <div class="wrapper">
+                <div class="center">
+                    <div class="searchBox"></div>
+                    <div class="headerMenu">
+                        <ul>
+                            
+                            <li><a href="/">Home</a></li>
+                            
+                            <li><a href="/archives">Archives</a></li>
+                            
+                        </ul>
+                    </div>
+                    <div class="socnets">
+                        
+                        
+                        <a href="/atom.xml" alt="rss"><i class="foundicon-rss"></i></a>
+                        
+                        <a href="mailto:tonywutao@gmail.com"><i class="foundicon-chat"></i></a>
+                        
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main">
+                        <div class="brand">
+                <div class="wide">
+                    <div class="center">
+                        <h1>
+                            <a href="/">Blog of Tonywutao</a>
+                        </h1>
+                        <p>
+                            
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="content">
+
+
+  
+    <div class="wide">
+    <div class="center">
+        <div class="head">
+            <div class="timeLine">
+                <time datetime="2012-03-13T00:00:00.000Z" class="date">
+                    <a href="/2012/03/12/java-objects-memory-structure/">3月 12 2012</a>
+                </time>
+            </div>
+        </div>
+        
+  
+    <h2 class="title"><a href="/2012/03/12/java-objects-memory-structure/">转载 - Java对象的内存结构</a></h1>
+  
+
+        <div class="entry">
+        
+          <h2>转载 - Java对象的内存结构</h2>
+<h4>起因</h4>
+<p>Java对象的内存结构非常重要，但是很多人不清楚，至少我之前也不清楚。特转载一篇文章，我觉得讲得很好。</p>
+<p><a href="http://www.codeinstructions.com/2008/12/java-objects-memory-structure.html">http://www.codeinstructions.com/2008/12/java-objects-memory-structure.html</a></p>
+<hr>
+<p>SATURDAY, DECEMBER 13, 2008</p>
+<h2>Java Objects Memory Structure</h2>
+<p>Update (December 18th, 2008): I&#39;ve posted here an experimental library that implements Sizeof for Java.</p>
+<p>One thing about Java that has always bothered me, given my C/C++ roots, is the lack of a way to figure out how much memory is used by an object. C++ features the sizeof operator, that lets you query the size of primitive types and also the size of objects of a given class. This operator in C and C++ is useful for pointer arithmetic, copying memory around, and IO, for example.</p>
+<p>Java doesn&#39;t have a corresponding operator. In reality, Java doesn&#39;t need one. Size of primitive types in Java is defined in the language specification, whereas in C and C++ it depends on the platform. Java has its own IO infrastructure built around serialization. And both pointer arithmetic and bulk memory copy don&#39;t apply because Java doesn&#39;t have pointers.</p>
+<p>But every Java developer at some point wondered how much memory is used by a Java object. The answer, it turns out, is not so simple.</p>
+<p>The first distinction to be made is between shallow size and deep size. The shallow size of an object is the space occupied by the object alone, not taking into account size of other objects that it references. The deep size, on the other hand, takes into account the shallow size of the object, plus the deep size of each object referenced by this object, recursively. Most of the times you will be interested on knowing the deep size of an object, but, in order to know that, you need to know how to calculate the shallow size first, which is what I&#39;m going to talk about here.</p>
+<p>One complication is that runtime in memory structure of Java objects is not enforced by the virtual machine specification, which means that virtual machine providers can implement them as they please. The consequence is that you can write a class, and instances of that class in one VM can occupy a different amount of memory than instances of that same class when run in another VM. Most of the world, including myself, uses the Sun HotSpot virtual machine though, which simplifies things a lot. The remainder of the discussion will focus on the 32 bit Sun JVM. I will lay down a few &#39;rules that will help explain how the JVM organizes the objects&#39; layout in memory.</p>
+<h4>Memory layout of classes that have no instance attributes</h4>
+<p>In the Sun JVM, every object (except arrays) has a 2 words header. The first word contains the object&#39;s identity hash code plus some flags like lock state and age, and the second word contains a reference to the object&#39;s class. Also, any object is aligned to an 8 bytes granularity. This is the first rule or objects memory layout:</p>
+<h5>Rule 1: every object is aligned to an 8 bytes granularity.</h5>
+<p>Now we know that if we call new Object(), we will be using 8 bytes of the heap for the two header words and nothing else, since theObject class doesn&#39;t have any fields.</p>
+<h4>Memory layout of classes that extend Object</h4>
+<p>After the 8 bytes of header, the class attributes follow. Attributes are always aligned in memory to their size. For instance, ints are aligned to a 4 byte granularity, and longs are aligned to an 8 byte granularity. There is a performance reason to do it this way: usually the cost to read a 4 bytes word from memory into a 4 bytes register of the processor is much cheaper if the word is aligned to a 4 bytes granularity.</p>
+<p>In order to save some memory, the Sun VM doesn&#39;t lay out object&#39;s attributes in the same order they are declared. Instead, the attributes are organized in memory in the following order:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre><span class="title">doubles</span> and longs
+<span class="title">ints</span> and floats
+<span class="title">shorts</span> and chars
+<span class="title">booleans</span> and bytes
+<span class="title">references</span>
+</pre></td></tr></table></figure>
+
+<p>This scheme allows for a good optimization of memory usage. For example, imagine you declared the following class:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="code"><pre><span class="title">class</span> MyClass {
+    <span class="title">byte</span> a;
+    <span class="title">int</span> c;
+    <span class="title">boolean</span> d;
+    <span class="title">long</span> e;
+    <span class="title">Object</span> f;        
+}
+</pre></td></tr></table></figure>
+
+<p>If the JVM didn&#39;t reorder the attributes, the object memory layout would be like this:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">8</span> bytes]  <span class="number">8</span>
+[a:       <span class="number">1</span> byte ]  <span class="number">9</span>
+[padding: <span class="number">3</span> bytes] <span class="number">12</span>
+[c:       <span class="number">4</span> bytes] <span class="number">16</span>
+[d:       <span class="number">1</span> byte ] <span class="number">17</span>
+[padding: <span class="number">7</span> bytes] <span class="number">24</span>
+[e:       <span class="number">8</span> bytes] <span class="number">32</span>
+[f:       <span class="number">4</span> bytes] <span class="number">36</span>
+[padding: <span class="number">4</span> bytes] <span class="number">40</span>
+</pre></td></tr></table></figure>
+
+<p>Notice that 14 bytes would have been wasted with padding and the object would use 40 bytes of memory. By reordering the objects using the rules above, the in memory structure of the object becomes:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">8</span> bytes]  <span class="number">8</span>
+[e:       <span class="number">8</span> bytes] <span class="number">16</span>
+[c:       <span class="number">4</span> bytes] <span class="number">20</span>
+[a:       <span class="number">1</span> byte ] <span class="number">21</span>
+[d:       <span class="number">1</span> byte ] <span class="number">22</span>
+[padding: <span class="number">2</span> bytes] <span class="number">24</span>
+[f:       <span class="number">4</span> bytes] <span class="number">28</span>
+[padding: <span class="number">4</span> bytes] <span class="number">32</span>
+</pre></td></tr></table></figure>
+
+<p>This time, only 6 bytes are used for padding and the object uses only 32 bytes of memory.</p>
+<p>So here is rule 2 of object memory layout:</p>
+<h5>Rule 2: class attributes are ordered like this: first longs and doubles; then ints and floats; then chars and shorts; then bytes and booleans, and last the references. The attributes are aligned to their own granularity.</h5>
+<p>Now we know how to calculate the memory used by any instance of a class that extends Object directly. One practical example is the java.lang.Boolean class. Here is its memory layout:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">8</span> bytes]  <span class="number">8</span> 
+[value:   <span class="number">1</span> byte ]  <span class="number">9</span>
+[padding: <span class="number">7</span> bytes] <span class="number">16</span>
+</pre></td></tr></table></figure>
+
+<p>An instance of the Boolean class takes 16 bytes of memory! Surprised? (Notice the padding at the end to align the object size to an 8 bytes granularity.)</p>
+<h4>Memory layout of subclasses of other classes</h4>
+<p>The next three rules are followed by the JVM to organize the the fields of classes that have superclasses. Rule 3 of object memory layout is the following:</p>
+<h5>Rule 3: Fields that belong to different classes of the hierarchy are NEVER mixed up together. Fields of the superclass come first, obeying rule 2, followed by the fields of the subclass.</h5>
+<p>Here is an example:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="code"><pre><span class="class"><span class="keyword">class</span> <span class="title">A</span> {</span>
+   <span class="keyword">long</span> a;
+   <span class="keyword">int</span> b;
+   <span class="keyword">int</span> c;
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">B</span> <span class="keyword">extends</span> <span class="title">A</span> {</span>
+   <span class="keyword">long</span> d;
+}
+</pre></td></tr></table></figure>
+
+<p>An instance of B looks like this in memory:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">8</span> bytes]  <span class="number">8</span>
+[a:       <span class="number">8</span> bytes] <span class="number">16</span>
+[b:       <span class="number">4</span> bytes] <span class="number">20</span>
+[c:       <span class="number">4</span> bytes] <span class="number">24</span>
+[d:       <span class="number">8</span> bytes] <span class="number">32</span>
+</pre></td></tr></table></figure>
+
+<p>The next rule is used when the fields of the superclass don&#39;t fit in a 4 bytes granularity. Here is what it says:</p>
+<h5>Rule 4: Between the last field of the superclass and the first field of the subclass there must be padding to align to a 4 bytes boundary.</h5>
+<p>Here is an example:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="code"><pre><span class="class"><span class="keyword">class</span> <span class="title">A</span> {</span>
+   <span class="keyword">byte</span> a;
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">B</span> {</span>
+   <span class="keyword">byte</span> b;
+}
+</pre></td></tr></table></figure>
+
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">8</span> bytes]  <span class="number">8</span>
+[a:       <span class="number">1</span> byte ]  <span class="number">9</span>
+[padding: <span class="number">3</span> bytes] <span class="number">12</span>
+[b:       <span class="number">1</span> byte ] <span class="number">13</span>
+[padding: <span class="number">3</span> bytes] <span class="number">16</span>
+</pre></td></tr></table></figure>
+
+<p>Notice the 3 bytes padding after field a to align b to a 4 bytes granularity. That space is lost and cannot be used by fields of class B.</p>
+<p>The final rule is applied to save some space when the first field of the subclass is a long or double and the parent class doesn&#39;t end in an 8 bytes boundary.</p>
+<h5>Rule 5: When the first field of a subclass is a double or long and the superclass doesn&#39;t align to an 8 bytes boundary, JVM will break rule 2 and try to put an int, then shorts, then bytes, and then references at the beginning of the space reserved to the subclass until it fills the gap.</h5>
+<p>Here is an example:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="code"><pre><span class="title">class</span> A {
+  <span class="title">byte</span> a;
+}
+
+<span class="title">class</span> B {
+  <span class="title">long</span> b;
+  <span class="title">short</span> c;  
+  <span class="title">byte</span> d;
+}
+</pre></td></tr></table></figure>
+
+<p>Here is the memory layout:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">8</span> bytes]  <span class="number">8</span>
+[a:       <span class="number">1</span> byte ]  <span class="number">9</span>
+[padding: <span class="number">3</span> bytes] <span class="number">12</span>
+[c:       <span class="number">2</span> bytes] <span class="number">14</span>
+[d:       <span class="number">1</span> byte ] <span class="number">15</span>
+[padding: <span class="number">1</span> byte ] <span class="number">16</span>
+[b:       <span class="number">8</span> bytes] <span class="number">24</span>
+</pre></td></tr></table></figure>
+
+<p>At byte 12, which is where class A &#39;ends&#39;, the JVM broke rule 2 and stuck a short and a byte before a long, to save 3 out of 4 bytes that would otherwise have been wasted.</p>
+<p>Memory layout of arrays</p>
+<p>Arrays have an extra header field that contain the value of the &#39;length&#39; variable. The array elements follow, and the arrays, as any regular objects, are also aligned to an 8 bytes boundary.</p>
+<p>Here is the layout of a byte array with 3 elements:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">12</span> bytes] <span class="number">12</span>
+[[<span class="number">0</span>]:      <span class="number">1</span> byte ] <span class="number">13</span>
+[[<span class="number">1</span>]:      <span class="number">1</span> byte ] <span class="number">14</span>
+[[<span class="number">2</span>]:      <span class="number">1</span> byte ] <span class="number">15</span>
+[padding:  <span class="number">1</span> byte ] <span class="number">16</span>
+</pre></td></tr></table></figure>
+
+<p>And here is the layout of a long array with 3 elements:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre>1
+2
+3
+4
+5
+</pre></td><td class="code"><pre>[HEADER:  <span class="number">12</span> bytes] <span class="number">12</span>
+[padding:  <span class="number">4</span> bytes] <span class="number">16</span>
+[[<span class="number">0</span>]:      <span class="number">8</span> bytes] <span class="number">24</span>
+[[<span class="number">1</span>]:      <span class="number">8</span> bytes] <span class="number">32</span>
+[[<span class="number">2</span>]:      <span class="number">8</span> bytes] <span class="number">40</span>
+</pre></td></tr></table></figure>
+
+<h4>Memory layout of inner classes</h4>
+<p>Non-static inner classes have an extra &#39;hidden&#39; field that holds a reference to the outer class. This field is a regular reference and it follows the rule of the in memory layout of references. Inner classes, for this reason, have an extra 4 bytes cost.</p>
+<h4>Final thoughts</h4>
+<p>We have learned how to calculate the shallow size of any Java object in the 32 bit Sun JVM. Knowing how memory is structured can help you understand how much memory is used by instances of your classes.</p>
+<p>In the next post I will will show code that puts it all together and uses reflection to calculate the deep size of an object. Subscribe to my Feed or keep watching this blog for updates!</p>
+<p>POSTED BY DOMINGOS NETO AT 11:05 PM
+TAGS: JAVA</p>
+<hr>
+<p>------END-------</p>
+<p>伍涛@成都 重整</p>
+<p>2013-07-28</p>
+
+        
+        
+          
+        
+        </div>
+    </div>
+</div>
+                
+  
+
+                  
+</div>
+        </div>
+
+  <footer>
+  
+  &copy; 2013 Tonywutao
+  
+</footer>
+  <script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'blogoftonywutao';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>
